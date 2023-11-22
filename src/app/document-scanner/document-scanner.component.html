@@ -1,0 +1,17 @@
+<div class="fax-mobile-scan">
+  <button class="btn" (click)="scanDocument()">SCAN</button>
+
+  <div class="camera-stream-container" *ngIf="cameraStreaming">
+    <video
+      id="videoInput"
+      [width]="screenWidth"
+      [height]="screenHeight"
+    ></video>
+    <canvas
+      id="canvasOutput"
+      [width]="screenWidth"
+      [height]="screenHeight"
+    ></canvas>
+    <button class="capture-image-btn" (click)="captureImage()">capture</button>
+  </div>
+</div>
