@@ -1,7 +1,7 @@
 <div class="fax-mobile-scan">
   <button class="btn" (click)="scanDocument()">SCAN</button>
 
-  <div class="camera-stream-container" *ngIf="cameraStreaming">
+  <div class="camera-stream-container" [hidden]="!cameraStreaming">
     <video
       id="videoInput"
       [width]="screenWidth"

@@ -31,20 +31,23 @@
             "inlineStyleLanguage": "scss",
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": ["src/styles.scss"],
-            "scripts": ["./node_modules/opencv.js/opencv.js"]
+            "scripts": [
+              "./src/assets/js/webrtc.adapter-5.0.4.js",
+              "./node_modules/opencv.js/opencv.js"
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "100mb",
-                  "maximumError": "100mb"
+                  "maximumWarning": "1000mb",
+                  "maximumError": "1000mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "100mb",
-                  "maximumError": "100mb"
+                  "maximumWarning": "1000mb",
+                  "maximumError": "1000mb"
                 }
               ],
               "fileReplacements": [
@@ -94,7 +97,10 @@
             "inlineStyleLanguage": "scss",
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": ["src/styles.scss"],
-            "scripts": ["./node_modules/opencv.js/opencv.js"]
+            "scripts": [
+              "./src/assets/js/webrtc.adapter-5.0.4.js",
+              "./node_modules/opencv.js/opencv.js"
+            ]
           }
         }
       }
