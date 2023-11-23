@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DocumentScannerService } from './document-scanner.service';
 
 @Component({
@@ -6,7 +6,7 @@ import { DocumentScannerService } from './document-scanner.service';
   templateUrl: './document-scanner.component.html',
   styleUrls: ['./document-scanner.component.scss'],
 })
-export class DocumentScannerComponent implements OnInit {
+export class DocumentScannerComponent implements OnInit, OnDestroy {
   constructor(public documentScannerService: DocumentScannerService) {}
 
   ngOnInit() {}
@@ -21,5 +21,9 @@ export class DocumentScannerComponent implements OnInit {
 
   async switchCamera() {
     this.documentScannerService.switchCamera();
+  }
+
+  ngOnDestroy(): void {
+    this.documentScannerService.stopCamera();
   }
 }

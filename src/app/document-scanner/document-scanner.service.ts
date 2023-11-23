@@ -13,7 +13,8 @@ enum FacingMode {
 export class DocumentScannerService {
   isStreaming = false;
   currentStream: MediaStream | null = null;
-  facingMode = FacingMode.environment;
+  // facingMode = FacingMode.environment;
+  // cameraDeviceId: string | null = null;
 
   constructor() {}
 
@@ -30,6 +31,35 @@ export class DocumentScannerService {
   };
 
   openCamera = async () => {
+    // test
+    const devices = await navigator.mediaDevices.enumerateDevices();
+
+    let cameraDevice = devices.find(
+      (device) =>
+        device.kind === 'videoinput' &&
+        //@ts-ignore
+        device.getCapabilities().facingMode.includes(FacingMode.environment)
+    );
+    // this.facingMode = FacingMode.environment;
+
+    if (!cameraDevice) {
+      cameraDevice = devices.find(
+        (device) =>
+          device.kind === 'videoinput' &&
+          //@ts-ignore
+          device.getCapabilities().facingMode.includes(FacingMode.user)
+      );
+      // this.facingMode = FacingMode.user;
+    }
+
+    if (!cameraDevice) {
+      alert('No camera found');
+      return;
+    }
+
+    // this.cameraDeviceId = cameraDevice.deviceId;
+    // end test
+
     this.isStreaming = true;
 
     let video = document.getElementById('videoInput') as HTMLVideoElement;
@@ -40,7 +70,7 @@ export class DocumentScannerService {
 
     const constrains = {
       video: {
-        facingMode: { exact: this.facingMode },
+        deviceId: { exact: cameraDevice.deviceId },
       },
       audio: false,
     };
@@ -87,12 +117,18 @@ export class DocumentScannerService {
   };
 
   switchCamera = async () => {
-    this.facingMode =
-      this.facingMode === FacingMode.environment
-        ? FacingMode.user
-        : FacingMode.environment;
-
-    this.stopCamera();
-    this.openCamera();
+    // this.facingMode =
+    //   this.facingMode === FacingMode.environment
+    //     ? FacingMode.user
+    //     : FacingMode.environment;
+    // const devices = await navigator.mediaDevices.enumerateDevices();
+    // let cameraDevice = devices.find(
+    //   (device) =>
+    //     device.kind === 'videoinput' &&
+    //     //@ts-ignore
+    //     device.getCapabilities().facingMode.includes(FacingMode.environment)
+    // );
+    // this.stopCamera();
+    // this.openCamera();
   };
 }
