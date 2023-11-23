@@ -40,7 +40,7 @@ export class DocumentScannerService {
 
     const constrains = {
       video: {
-        facingMode: this.facingMode,
+        facingMode: { exact: this.facingMode },
       },
       audio: false,
     };
