@@ -2,16 +2,8 @@
   <button class="btn" (click)="scanDocument()">SCAN</button>
 
   <div class="camera-stream-container" [hidden]="!cameraStreaming">
-    <video
-      id="videoInput"
-      [width]="screenWidth"
-      [height]="screenHeight"
-    ></video>
-    <canvas
-      id="canvasOutput"
-      [width]="screenWidth"
-      [height]="screenHeight"
-    ></canvas>
+    <video id="videoInput"></video>
+    <canvas id="canvasOutput"></canvas>
     <button class="capture-image-btn" (click)="captureImage()">capture</button>
   </div>
 </div>
