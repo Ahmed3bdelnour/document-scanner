@@ -19,10 +19,6 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
     this.documentScannerService.stopCamera();
   }
 
-  async switchCamera() {
-    this.documentScannerService.switchCamera();
-  }
-
   ngOnDestroy(): void {
     this.documentScannerService.stopCamera();
   }
