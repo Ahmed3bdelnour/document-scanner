@@ -18,12 +18,19 @@
       left: 0;
     }
 
-    .capture-image-btn {
+    .capture-image-btn,
+    .switch-camera-btn {
       position: fixed;
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
       z-index: 1000;
+    }
+
+    .switch-camera-btn {
+      left: unset;
+      transform: unset;
+      right: 0;
     }
   }
 }

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { captureVideo } from './utils';
+import { DocumentScannerService } from './document-scanner.service';
 
 @Component({
   selector: 'app-document-scanner',
@@ -7,18 +7,19 @@ import { captureVideo } from './utils';
   styleUrls: ['./document-scanner.component.scss'],
 })
 export class DocumentScannerComponent implements OnInit {
-  cameraStreaming = false;
-
-  constructor() {}
+  constructor(public documentScannerService: DocumentScannerService) {}
 
   ngOnInit() {}
 
   scanDocument() {
-    this.cameraStreaming = true;
-    captureVideo(this.cameraStreaming);
+    this.documentScannerService.openCamera();
   }
 
   captureImage() {
-    this.cameraStreaming = false;
+    this.documentScannerService.stopCamera();
+  }
+
+  async switchCamera() {
+    this.documentScannerService.switchCamera();
   }
 }
