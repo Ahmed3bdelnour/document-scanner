@@ -66,8 +66,11 @@ export class DocumentScannerService {
           let begin = Date.now();
           // start processing.
           cap.read(src);
+
+          cv.imshow('canvasOutput', src);
           // cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
-          cv.imshow('canvasOutput', dst);
+          // cv.imshow('canvasOutput', dst);
+
           // schedule the next one.
           let delay = 1000 / FPS - (Date.now() - begin);
           setTimeout(processVideo, delay);
