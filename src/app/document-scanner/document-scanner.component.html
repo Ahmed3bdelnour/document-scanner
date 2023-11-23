@@ -1,4 +1,11 @@
 <div class="fax-mobile-scan">
+  <input
+    id="cameraFileInput"
+    type="file"
+    accept="image/*"
+    capture="environment"
+  />
+
   <button class="btn" (click)="scanDocument()">SCAN</button>
 
   <div
@@ -8,6 +15,7 @@
     <video id="videoInput"></video>
     <canvas id="canvasOutput"></canvas>
     <button class="capture-image-btn" (click)="captureImage()">capture</button>
-    <!-- <button class="switch-camera-btn" (click)="switchCamera()">switch</button> -->
   </div>
 </div>
+
+<!-- <button class="switch-camera-btn" (click)="switchCamera()">switch</button> -->

@@ -32,30 +32,30 @@ export class DocumentScannerService {
 
   openCamera = async () => {
     // test
-    const devices = await navigator.mediaDevices.enumerateDevices();
+    // const devices = await navigator.mediaDevices.enumerateDevices();
 
-    let cameraDevice = devices.find(
-      (device) =>
-        device.kind === 'videoinput' &&
-        //@ts-ignore
-        device.getCapabilities().facingMode.includes(FacingMode.environment)
-    );
-    // this.facingMode = FacingMode.environment;
+    // let cameraDevice = devices.find(
+    //   (device) =>
+    //     device.kind === 'videoinput' &&
+    //     //@ts-ignore
+    //     device.getCapabilities().facingMode.includes(FacingMode.environment)
+    // );
+    // // this.facingMode = FacingMode.environment;
 
-    if (!cameraDevice) {
-      cameraDevice = devices.find(
-        (device) =>
-          device.kind === 'videoinput' &&
-          //@ts-ignore
-          device.getCapabilities().facingMode.includes(FacingMode.user)
-      );
-      // this.facingMode = FacingMode.user;
-    }
+    // if (!cameraDevice) {
+    //   cameraDevice = devices.find(
+    //     (device) =>
+    //       device.kind === 'videoinput' &&
+    //       //@ts-ignore
+    //       device.getCapabilities().facingMode.includes(FacingMode.user)
+    //   );
+    //   // this.facingMode = FacingMode.user;
+    // }
 
-    if (!cameraDevice) {
-      alert('No camera found');
-      return;
-    }
+    // if (!cameraDevice) {
+    //   alert('No camera found');
+    //   return;
+    // }
 
     // this.cameraDeviceId = cameraDevice.deviceId;
     // end test
@@ -68,10 +68,15 @@ export class DocumentScannerService {
     video.width = screen.availWidth;
     video.height = screen.availHeight;
 
+    // const constrains = {
+    //   video: {
+    //     deviceId: { exact: cameraDevice.deviceId },
+    //   },
+    //   audio: false,
+    // };
+
     const constrains = {
-      video: {
-        deviceId: { exact: cameraDevice.deviceId },
-      },
+      video: { facingMode: FacingMode.environment },
       audio: false,
     };
 
@@ -115,6 +120,8 @@ export class DocumentScannerService {
       setTimeout(processVideo, 0);
     };
   };
+
+  getDeviceFacingMode = () => {};
 
   switchCamera = async () => {
     // this.facingMode =
