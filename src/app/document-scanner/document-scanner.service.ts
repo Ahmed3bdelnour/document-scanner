@@ -38,7 +38,12 @@ export class DocumentScannerService {
     video.height = screen.availHeight;
 
     const constrains = {
-      video: { facingMode: FacingMode.environment },
+      video: {
+        facingMode: FacingMode.environment,
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        frameRate: { ideal: 30, max: 60 },
+      },
       audio: false,
     };
 
@@ -52,7 +57,7 @@ export class DocumentScannerService {
       let dst = new cv.Mat(video.height, video.width, cv.CV_8UC4);
       let cap = new cv.VideoCapture(video);
 
-      const FPS = 60;
+      const FPS = this.getVideoFrameRate(this.currentStream as MediaStream);
 
       const processVideo = () => {
         try {
@@ -83,6 +88,19 @@ export class DocumentScannerService {
       setTimeout(processVideo, 0);
     };
   };
+
+  getVideoFrameRate(stream: MediaStream) {
+    const defaultFrameRate = 30;
+
+    try {
+      const videoTrack = stream.getVideoTracks()[0];
+      if (!videoTrack) return defaultFrameRate;
+
+      return videoTrack.getSettings().frameRate || defaultFrameRate;
+    } catch (error) {
+      return defaultFrameRate;
+    }
+  }
 
   highlightPaper(src: any, dst: any, options: any = {}) {
     options = options || {};
