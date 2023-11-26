@@ -234,7 +234,7 @@ export class DocumentScannerService {
       cv.CHAIN_APPROX_SIMPLE
     );
 
-    let maxArea = 0.25 * img.rows * img.cols;
+    let maxArea = 0.15 * img.rows * img.cols;
 
     let maxContourIndex = -1;
     for (let i = 0; i < contours.size(); ++i) {
