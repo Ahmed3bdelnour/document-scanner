@@ -84,7 +84,7 @@ export class DocumentScannerService {
             !contourPoints.bottomRight;
 
           this.smallContour =
-            !this.noContour && cv.boundingRect(contour).width < 0.9 * src.cols;
+            !this.noContour && cv.boundingRect(contour).width < 0.85 * src.cols;
 
           cv.imshow('canvasOutput', dst);
 
@@ -234,7 +234,7 @@ export class DocumentScannerService {
       cv.CHAIN_APPROX_SIMPLE
     );
 
-    let maxArea = 0.5 * img.rows * img.cols;
+    let maxArea = 0.25 * img.rows * img.cols;
 
     let maxContourIndex = -1;
     for (let i = 0; i < contours.size(); ++i) {
