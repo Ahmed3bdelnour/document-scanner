@@ -15,11 +15,14 @@ export class DocumentScannerService {
   currentStream: MediaStream | null = null;
   noContour = false;
   smallContour = false;
+  resultPaperUrl = '';
 
   constructor() {}
 
   stopCamera = () => {
     this.isStreaming = false;
+    this.noContour = false;
+    this.smallContour = false;
 
     if (!this.currentStream) return;
 
@@ -56,17 +59,21 @@ export class DocumentScannerService {
       this.isStreaming = true;
 
       let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-      let dst = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+      let highlightedPaper = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+      let extractedPaper = new cv.Mat();
       let cap = new cv.VideoCapture(video);
 
       const FPS = this.getVideoFrameRate(this.currentStream as MediaStream);
+      let cropTimeoutId: any;
 
       const processVideo = () => {
         try {
           if (!this.isStreaming) {
             // clean and stop.
+
             src.delete();
-            dst.delete();
+            highlightedPaper.delete();
+            extractedPaper.delete();
             return;
           }
 
@@ -74,7 +81,10 @@ export class DocumentScannerService {
           // start processing.
           cap.read(src);
 
-          const { contour, contourPoints } = this.highlightPaper(src, dst);
+          const { contour, contourPoints } = this.highlightPaper(
+            src,
+            highlightedPaper
+          );
           this.noContour =
             !contour ||
             !contourPoints ||
@@ -84,9 +94,39 @@ export class DocumentScannerService {
             !contourPoints.bottomRight;
 
           this.smallContour =
-            !this.noContour && cv.boundingRect(contour).width < 0.85 * src.cols;
+            !this.noContour && cv.boundingRect(contour).width < 0.9 * src.cols;
 
-          cv.imshow('canvasOutput', dst);
+          const shouldAutoCrop = !this.noContour && !this.smallContour;
+
+          if (shouldAutoCrop && cropTimeoutId === undefined) {
+            cropTimeoutId = setTimeout(() => {
+              if (!shouldAutoCrop) {
+                clearTimeout(cropTimeoutId);
+                cropTimeoutId = undefined;
+                return;
+              }
+
+              this.extractPaper(src, extractedPaper, src.cols, src.rows);
+
+              cv.imshow('canvasOutput', extractedPaper);
+
+              const resultCanvas = document.getElementById(
+                'canvasOutput'
+              )! as HTMLCanvasElement;
+
+              this.resultPaperUrl = resultCanvas.toDataURL('image/png');
+
+              clearTimeout(cropTimeoutId);
+              cropTimeoutId = undefined;
+
+              this.stopCamera();
+            }, 3000);
+          } else if (!shouldAutoCrop && cropTimeoutId !== undefined) {
+            clearTimeout(cropTimeoutId);
+            cropTimeoutId = undefined;
+          }
+
+          cv.imshow('canvasOutput', highlightedPaper);
 
           // schedule the next one.
           let delay = 1000 / FPS - (Date.now() - begin);
@@ -199,6 +239,70 @@ export class DocumentScannerService {
         bottomRight: bottomRightCorner,
       },
     };
+  }
+
+  /**
+   * Extracts and undistorts the image detected within the frame.
+   * @param {*} image image to process
+   * @param {*} resultWidth desired result paper width
+   * @param {*} resultHeight desired result paper height
+   * @param {*} cornerPoints optional custom corner points, in case automatic corner points are incorrect
+   * @returns `HTMLCanvasElement` containing undistorted image
+   */
+  extractPaper(
+    src: any,
+    dst: any,
+    resultWidth: number,
+    resultHeight: number,
+    cornerPoints: {
+      topLeftCorner: any;
+      topRightCorner: any;
+      bottomLeftCorner: any;
+      bottomRightCorner: any;
+    } | null = null
+  ) {
+    const maxContour = this.findPaperContour(src);
+
+    const {
+      topLeftCorner,
+      topRightCorner,
+      bottomLeftCorner,
+      bottomRightCorner,
+    } = cornerPoints || this.getCornerPoints(maxContour);
+
+    let dsize = new cv.Size(resultWidth, resultHeight);
+    let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
+      topLeftCorner.x,
+      topLeftCorner.y,
+      topRightCorner.x,
+      topRightCorner.y,
+      bottomLeftCorner.x,
+      bottomLeftCorner.y,
+      bottomRightCorner.x,
+      bottomRightCorner.y,
+    ]);
+
+    let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
+      0,
+      0,
+      resultWidth,
+      0,
+      0,
+      resultHeight,
+      resultWidth,
+      resultHeight,
+    ]);
+
+    let M = cv.getPerspectiveTransform(srcTri, dstTri);
+    cv.warpPerspective(
+      src,
+      dst,
+      M,
+      dsize,
+      cv.INTER_LINEAR,
+      cv.BORDER_CONSTANT,
+      new cv.Scalar()
+    );
   }
 
   /**
