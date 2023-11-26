@@ -15,6 +15,7 @@ export class DocumentScannerService {
   currentStream: MediaStream | null = null;
   noContour = false;
   smallContour = false;
+  cropping = false;
   resultPaperUrl = '';
 
   constructor() {}
@@ -23,6 +24,7 @@ export class DocumentScannerService {
     this.isStreaming = false;
     this.noContour = false;
     this.smallContour = false;
+    this.cropping = false;
 
     if (!this.currentStream) return;
 
@@ -106,6 +108,7 @@ export class DocumentScannerService {
                 return;
               }
 
+              this.cropping = true;
               this.extractPaper(src, extractedPaper);
 
               cv.imshow('canvasOutput', extractedPaper);

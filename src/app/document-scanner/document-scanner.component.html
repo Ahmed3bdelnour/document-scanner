@@ -14,7 +14,8 @@
       *ngIf="
         documentScannerService.isStreaming &&
         (documentScannerService.noContour ||
-          documentScannerService.smallContour)
+          documentScannerService.smallContour ||
+          documentScannerService.cropping)
       "
     >
       <ng-container *ngIf="documentScannerService.noContour"
@@ -22,6 +23,9 @@
       >
       <ng-container *ngIf="documentScannerService.smallContour"
         ><= Get camera closer =></ng-container
+      >
+      <ng-container *ngIf="documentScannerService.smallContour"
+        >Cropping...</ng-container
       >
     </div>
     <video id="videoInput"></video>
