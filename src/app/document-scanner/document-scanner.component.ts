@@ -12,14 +12,26 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
   ngOnInit() {}
 
   scanDocument() {
-    this.documentScannerService.openCamera();
+    try {
+      this.documentScannerService.openCamera();
+    } catch (error) {
+      alert(error);
+    }
   }
 
   captureImage() {
-    this.documentScannerService.stopCamera();
+    try {
+      this.documentScannerService.stopCamera();
+    } catch (error) {
+      alert(error);
+    }
   }
 
   ngOnDestroy(): void {
-    this.documentScannerService.stopCamera();
+    try {
+      this.documentScannerService.stopCamera();
+    } catch (error) {
+      alert(error);
+    }
   }
 }
