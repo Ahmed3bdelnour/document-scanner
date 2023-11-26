@@ -101,6 +101,7 @@ export class DocumentScannerService {
           const shouldAutoCrop = !this.noContour && !this.smallContour;
 
           if (shouldAutoCrop && cropTimeoutId === undefined) {
+            this.cropping = true;
             cropTimeoutId = setTimeout(() => {
               if (!shouldAutoCrop) {
                 clearTimeout(cropTimeoutId);
@@ -108,7 +109,6 @@ export class DocumentScannerService {
                 return;
               }
 
-              this.cropping = true;
               this.extractPaper(src, extractedPaper);
 
               cv.imshow('canvasOutput', extractedPaper);
@@ -127,6 +127,7 @@ export class DocumentScannerService {
           } else if (!shouldAutoCrop && cropTimeoutId !== undefined) {
             clearTimeout(cropTimeoutId);
             cropTimeoutId = undefined;
+            this.cropping = false;
           }
 
           cv.imshow('canvasOutput', highlightedPaper);
