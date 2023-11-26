@@ -13,6 +13,8 @@ enum FacingMode {
 export class DocumentScannerService {
   isStreaming = false;
   currentStream: MediaStream | null = null;
+  noContour = false;
+  smallContour = false;
 
   constructor() {}
 
@@ -29,8 +31,6 @@ export class DocumentScannerService {
   };
 
   openCamera = async () => {
-    this.isStreaming = true;
-
     let video = document.getElementById('videoInput') as HTMLVideoElement;
     video.srcObject = null;
 
@@ -53,6 +53,8 @@ export class DocumentScannerService {
     video.onloadedmetadata = () => {
       video.play();
 
+      this.isStreaming = true;
+
       let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
       let dst = new cv.Mat(video.height, video.width, cv.CV_8UC4);
       let cap = new cv.VideoCapture(video);
@@ -72,7 +74,17 @@ export class DocumentScannerService {
           // start processing.
           cap.read(src);
 
-          this.highlightPaper(src, dst, {});
+          const { contour, contourPoints } = this.highlightPaper(src, dst);
+          this.noContour =
+            !contour ||
+            !contourPoints ||
+            !contourPoints.topLeft ||
+            !contourPoints.topRight ||
+            !contourPoints.bottomLeft ||
+            !contourPoints.bottomRight;
+
+          this.smallContour =
+            !this.noContour && cv.boundingRect(contour).width < 0.9 * src.cols;
 
           cv.imshow('canvasOutput', dst);
 
@@ -102,36 +114,91 @@ export class DocumentScannerService {
     }
   }
 
-  highlightPaper(src: any, dst: any, options: any = {}) {
-    options = options || {};
-    options.color = options.color || 'orange';
-    options.thickness = options.thickness || 10;
-
+  /**
+   * Highlights the paper detected inside the image.
+   * @param {*} src image to process
+   * @param {*} dst processed image to get
+   * @param {*} options options for highlighting. Accepts `color [r, g, b]` and `thickness` parameter
+   */
+  highlightPaper(
+    src: any,
+    dst: any,
+    options = { color: new cv.Scalar(255, 255, 0, 255), thickness: 1 }
+  ): {
+    contour: any;
+    contourPoints: {
+      topLeft: any;
+      topRight: any;
+      bottomLeft: any;
+      bottomRight: any;
+    } | null;
+  } {
     src.copyTo(dst);
 
     const maxContour = this.findPaperContour(src);
+    if (!maxContour) return { contour: null, contourPoints: null };
 
-    if (maxContour) {
-      const {
-        topLeftCorner,
-        topRightCorner,
-        bottomLeftCorner,
-        bottomRightCorner,
-      } = this.getCornerPoints(maxContour);
+    const {
+      topLeftCorner,
+      topRightCorner,
+      bottomLeftCorner,
+      bottomRightCorner,
+    } = this.getCornerPoints(maxContour);
 
-      if (
-        topLeftCorner &&
-        topRightCorner &&
-        bottomLeftCorner &&
-        bottomRightCorner
-      ) {
-        const color = [0, 255, 0, 255];
-        cv.line(dst, topLeftCorner, topRightCorner, color, 1);
-        cv.line(dst, topRightCorner, bottomRightCorner, color, 1);
-        cv.line(dst, bottomRightCorner, bottomLeftCorner, color, 1);
-        cv.line(dst, bottomLeftCorner, topLeftCorner, color, 1);
-      }
-    }
+    if (
+      !topLeftCorner ||
+      !topRightCorner ||
+      !bottomLeftCorner ||
+      !bottomRightCorner
+    )
+      return {
+        contour: maxContour,
+        contourPoints: {
+          topLeft: topLeftCorner || null,
+          topRight: topRightCorner || null,
+          bottomLeft: bottomLeftCorner || null,
+          bottomRight: bottomRightCorner || null,
+        },
+      };
+
+    cv.line(
+      dst,
+      topLeftCorner,
+      topRightCorner,
+      options.color,
+      options.thickness
+    );
+    cv.line(
+      dst,
+      topRightCorner,
+      bottomRightCorner,
+      options.color,
+      options.thickness
+    );
+    cv.line(
+      dst,
+      bottomRightCorner,
+      bottomLeftCorner,
+      options.color,
+      options.thickness
+    );
+    cv.line(
+      dst,
+      bottomLeftCorner,
+      topLeftCorner,
+      options.color,
+      options.thickness
+    );
+
+    return {
+      contour: maxContour,
+      contourPoints: {
+        topLeft: topLeftCorner,
+        topRight: topRightCorner,
+        bottomLeft: bottomLeftCorner,
+        bottomRight: bottomRightCorner,
+      },
+    };
   }
 
   /**
@@ -166,93 +233,29 @@ export class DocumentScannerService {
       cv.RETR_CCOMP,
       cv.CHAIN_APPROX_SIMPLE
     );
-    let maxArea = 0;
+
+    let maxArea = 0.5 * img.rows * img.cols;
+
     let maxContourIndex = -1;
     for (let i = 0; i < contours.size(); ++i) {
       let contourArea = cv.contourArea(contours.get(i));
+
       if (contourArea > maxArea) {
         maxArea = contourArea;
         maxContourIndex = i;
       }
     }
 
-    const maxContour = contours.get(maxContourIndex);
+    const maxContour =
+      maxContourIndex !== -1 ? contours.get(maxContourIndex) : null;
 
     imgGray.delete();
     imgBlur.delete();
     imgThresh.delete();
     contours.delete();
     hierarchy.delete();
+
     return maxContour;
-  }
-
-  /**
-   * Extracts and undistorts the image detected within the frame.
-   * @param {*} image image to process
-   * @param {*} resultWidth desired result paper width
-   * @param {*} resultHeight desired result paper height
-   * @param {*} cornerPoints optional custom corner points, in case automatic corner points are incorrect
-   * @returns `HTMLCanvasElement` containing undistorted image
-   */
-  extractPaper(
-    image: any,
-    resultWidth: any,
-    resultHeight: any,
-    cornerPoints: any
-  ) {
-    const canvas = document.createElement('canvas');
-
-    const img = cv.imread(image);
-
-    const maxContour = this.findPaperContour(img);
-
-    const {
-      topLeftCorner,
-      topRightCorner,
-      bottomLeftCorner,
-      bottomRightCorner,
-    } = cornerPoints || this.getCornerPoints(maxContour);
-    let warpedDst = new cv.Mat();
-
-    let dsize = new cv.Size(resultWidth, resultHeight);
-    let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
-      topLeftCorner.x,
-      topLeftCorner.y,
-      topRightCorner.x,
-      topRightCorner.y,
-      bottomLeftCorner.x,
-      bottomLeftCorner.y,
-      bottomRightCorner.x,
-      bottomRightCorner.y,
-    ]);
-
-    let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
-      0,
-      0,
-      resultWidth,
-      0,
-      0,
-      resultHeight,
-      resultWidth,
-      resultHeight,
-    ]);
-
-    let M = cv.getPerspectiveTransform(srcTri, dstTri);
-    cv.warpPerspective(
-      img,
-      warpedDst,
-      M,
-      dsize,
-      cv.INTER_LINEAR,
-      cv.BORDER_CONSTANT,
-      new cv.Scalar()
-    );
-
-    cv.imshow(canvas, warpedDst);
-
-    img.delete();
-    warpedDst.delete();
-    return canvas;
   }
 
   /**
@@ -263,19 +266,14 @@ export class DocumentScannerService {
   getCornerPoints(contour: any) {
     let rect = cv.minAreaRect(contour);
     const center = rect.center;
-
     let topLeftCorner;
     let topLeftCornerDist = 0;
-
     let topRightCorner;
     let topRightCornerDist = 0;
-
     let bottomLeftCorner;
     let bottomLeftCornerDist = 0;
-
     let bottomRightCorner;
     let bottomRightCornerDist = 0;
-
     for (let i = 0; i < contour.data32S.length; i += 2) {
       const point = { x: contour.data32S[i], y: contour.data32S[i + 1] };
       const dist = this.distance(point, center);
@@ -305,7 +303,6 @@ export class DocumentScannerService {
         }
       }
     }
-
     return {
       topLeftCorner,
       topRightCorner,

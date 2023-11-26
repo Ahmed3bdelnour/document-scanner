@@ -5,6 +5,21 @@
     class="camera-stream-container"
     [hidden]="!documentScannerService.isStreaming"
   >
+    <div
+      class="message"
+      *ngIf="
+        documentScannerService.isStreaming &&
+        (documentScannerService.noContour ||
+          documentScannerService.smallContour)
+      "
+    >
+      <ng-container *ngIf="documentScannerService.noContour"
+        >Looking for document...</ng-container
+      >
+      <ng-container *ngIf="documentScannerService.smallContour"
+        ><= Get camera closer =></ng-container
+      >
+    </div>
     <video id="videoInput"></video>
     <canvas id="canvasOutput"></canvas>
     <button class="capture-image-btn" (click)="captureImage()">capture</button>

@@ -11,6 +11,18 @@
     width: 100vw;
     height: 100vh;
 
+    .message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1001;
+      background: gray;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
     #videoInput,
     #canvasOutput {
       position: absolute;
