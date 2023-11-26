@@ -136,7 +136,7 @@ export class DocumentScannerService {
           let delay = 1000 / FPS - (Date.now() - begin);
           setTimeout(processVideo, delay);
         } catch (err) {
-          console.error(err);
+          alert(err);
         }
       };
 
@@ -154,6 +154,7 @@ export class DocumentScannerService {
 
       return videoTrack.getSettings().frameRate || defaultFrameRate;
     } catch (error) {
+      alert(error);
       return defaultFrameRate;
     }
   }
