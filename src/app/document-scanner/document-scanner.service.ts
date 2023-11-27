@@ -28,6 +28,11 @@ export class DocumentScannerService {
 
   toggleAutoCapturingMode() {
     this.useAutoCapturing = !this.useAutoCapturing;
+
+    if (this.autoCropTimeoutId === undefined) return;
+
+    clearTimeout(this.autoCropTimeoutId);
+    this.autoCropTimeoutId = undefined;
   }
 
   stopCamera = () => {
