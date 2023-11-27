@@ -363,9 +363,9 @@ export class DocumentScannerService {
         if (approxCurve.rows === 4) {
           maxArea = contourArea;
           maxRect = approxCurve;
+        } else {
+          approxCurve.delete();
         }
-
-        approxCurve.delete();
       }
     }
 
