@@ -37,10 +37,14 @@ export class DocumentScannerService {
 
   openCamera = async () => {
     let video = document.getElementById('videoInput') as HTMLVideoElement;
-    video.srcObject = null;
+    video.setAttribute('width', screen.availWidth + '');
+    video.setAttribute('height', screen.availHeight + '');
+    // needed for ios
+    video.setAttribute('autoplay', '');
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
 
-    video.width = screen.availWidth;
-    video.height = screen.availHeight;
+    video.srcObject = null;
 
     const constrains = {
       video: {
