@@ -9,16 +9,10 @@
     class="camera-stream-container"
     [hidden]="!documentScannerService.isStreaming"
   >
-    <img class="top-left-angle" src="./../../assets//svg/right-angle.svg" />
-    <img class="top-right-angle" src="../../../assets//svg/right-angle.svg" />
-    <img
-      class="bottom-left-angle"
-      src="./../../../assets//svg/right-angle.svg"
-    />
-    <img
-      class="bottom-right-angle"
-      src="./.../../../assets//svg/right-angle.svg"
-    />
+    <img class="top-left-angle" src="assets/svg/right-angle.svg" />
+    <img class="top-right-angle" src="assets/svg/right-angle.svg" />
+    <img class="bottom-left-angle" src="assets/svg/right-angle.svg" />
+    <img class="bottom-right-angle" src="assets//svg/right-angle.svg" />
 
     <button class="switch-capturing-mode-btn" (click)="switchCapturingMode()">
       {{ documentScannerService.useAutoCapturing ? "Manual" : "Auto" }}
