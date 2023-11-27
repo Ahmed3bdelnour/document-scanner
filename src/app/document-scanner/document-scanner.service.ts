@@ -15,16 +15,26 @@ export class DocumentScannerService {
   currentStream: MediaStream | null = null;
   noContour = false;
   smallContour = false;
-  cropping = false;
+  useAutoCapturing = false;
+  autoCropping = false;
   resultPaperUrl = '';
 
+  src: any;
+  extractedPaper: any;
+
+  autoCropTimeoutId: any;
+
   constructor() {}
+
+  toggleAutoCapturingMode() {
+    this.useAutoCapturing = !this.useAutoCapturing;
+  }
 
   stopCamera = () => {
     this.isStreaming = false;
     this.noContour = false;
     this.smallContour = false;
-    this.cropping = false;
+    this.autoCropping = false;
 
     if (!this.currentStream) return;
 
@@ -51,7 +61,7 @@ export class DocumentScannerService {
         facingMode: FacingMode.environment,
         width: { ideal: 1280 },
         height: { ideal: 720 },
-        frameRate: { ideal: 30, max: 60 },
+        frameRate: { ideal: 30 },
       },
       audio: false,
     };
@@ -64,76 +74,71 @@ export class DocumentScannerService {
 
       this.isStreaming = true;
 
-      let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+      this.src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
       let highlightedPaper = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-      let extractedPaper = new cv.Mat();
+      this.extractedPaper = new cv.Mat();
       let cap = new cv.VideoCapture(video);
 
       const FPS = this.getVideoFrameRate(this.currentStream as MediaStream);
-      let cropTimeoutId: any;
 
       const processVideo = () => {
         try {
           if (!this.isStreaming) {
             // clean and stop.
 
-            src.delete();
+            this.src.delete();
             highlightedPaper.delete();
-            extractedPaper.delete();
+            this.extractedPaper.delete();
             return;
           }
 
           let begin = Date.now();
           // start processing.
-          cap.read(src);
+          cap.read(this.src);
 
-          const { contour, contourPoints } = this.highlightPaper(
-            src,
-            highlightedPaper
-          );
-          this.noContour =
-            !contour ||
-            !contourPoints ||
-            !contourPoints.topLeft ||
-            !contourPoints.topRight ||
-            !contourPoints.bottomLeft ||
-            !contourPoints.bottomRight;
+          if (this.useAutoCapturing) {
+            const { contour, contourPoints } = this.highlightPaper(
+              this.src,
+              highlightedPaper
+            );
+            this.noContour =
+              !contour ||
+              !contourPoints ||
+              !contourPoints.topLeft ||
+              !contourPoints.topRight ||
+              !contourPoints.bottomLeft ||
+              !contourPoints.bottomRight;
 
-          this.smallContour =
-            !this.noContour && cv.boundingRect(contour).width < 0.9 * src.cols;
+            this.smallContour =
+              !this.noContour &&
+              cv.boundingRect(contour).width < 0.9 * this.src.cols;
 
-          const shouldAutoCrop = !this.noContour && !this.smallContour;
+            const shouldAutoCrop = !this.noContour && !this.smallContour;
 
-          if (shouldAutoCrop && cropTimeoutId === undefined) {
-            this.cropping = true;
-            cropTimeoutId = setTimeout(() => {
-              if (!shouldAutoCrop) {
-                clearTimeout(cropTimeoutId);
-                cropTimeoutId = undefined;
-                return;
-              }
+            if (shouldAutoCrop && this.autoCropTimeoutId === undefined) {
+              this.autoCropping = true;
+              this.autoCropTimeoutId = setTimeout(() => {
+                if (!shouldAutoCrop) {
+                  clearTimeout(this.autoCropTimeoutId);
+                  this.autoCropTimeoutId = undefined;
+                  return;
+                }
 
-              this.extractPaper(src, extractedPaper);
-              cv.imshow('canvasOutput', extractedPaper);
+                this.getExtractedPaper();
+              }, 3000);
+            } else if (
+              !shouldAutoCrop &&
+              this.autoCropTimeoutId !== undefined
+            ) {
+              clearTimeout(this.autoCropTimeoutId);
+              this.autoCropTimeoutId = undefined;
+              this.autoCropping = false;
+            }
 
-              const resultCanvas = document.getElementById(
-                'canvasOutput'
-              )! as HTMLCanvasElement;
-
-              this.resultPaperUrl = resultCanvas.toDataURL('image/png');
-
-              clearTimeout(cropTimeoutId);
-              cropTimeoutId = undefined;
-
-              this.stopCamera();
-            }, 3000);
-          } else if (!shouldAutoCrop && cropTimeoutId !== undefined) {
-            clearTimeout(cropTimeoutId);
-            cropTimeoutId = undefined;
-            this.cropping = false;
+            cv.imshow('canvasOutput', highlightedPaper);
+          } else {
+            cv.imshow('canvasOutput', this.src);
           }
-
-          cv.imshow('canvasOutput', highlightedPaper);
 
           // schedule the next one.
           let delay = 1000 / FPS - (Date.now() - begin);
@@ -147,6 +152,22 @@ export class DocumentScannerService {
       setTimeout(processVideo, 0);
     };
   };
+
+  getExtractedPaper(extractFullDocument = false) {
+    this.extractPaper(this.src, this.extractedPaper, extractFullDocument);
+    cv.imshow('canvasOutput', this.extractedPaper);
+
+    const resultCanvas = document.getElementById(
+      'canvasOutput'
+    )! as HTMLCanvasElement;
+
+    this.resultPaperUrl = resultCanvas.toDataURL('image/png');
+
+    clearTimeout(this.autoCropTimeoutId);
+    this.autoCropTimeoutId = undefined;
+
+    this.stopCamera();
+  }
 
   getVideoFrameRate(stream: MediaStream) {
     const defaultFrameRate = 30;
@@ -257,28 +278,48 @@ export class DocumentScannerService {
    * @param {*} cornerPoints optional custom corner points, in case automatic corner points are incorrect
    * @returns `HTMLCanvasElement` containing undistorted image
    */
-  extractPaper(
-    src: any,
-    dst: any,
-    cornerPoints: {
-      topLeftCorner: any;
-      topRightCorner: any;
-      bottomLeftCorner: any;
-      bottomRightCorner: any;
-    } | null = null
-  ) {
-    const maxContour = this.findPaperContour(src);
+  extractPaper(src: any, dst: any, extractFullDocument = false) {
+    let imageWidth = src.cols;
+    let imageHeight = src.rows;
 
-    const {
-      topLeftCorner,
-      topRightCorner,
-      bottomLeftCorner,
-      bottomRightCorner,
-    } = cornerPoints || this.getCornerPoints(maxContour);
+    let topLeftCorner: any;
+    let topRightCorner: any;
+    let bottomLeftCorner: any;
+    let bottomRightCorner: any;
+    let resultWidth = 0;
+    let resultHeight = 0;
 
-    const { width, height } = cv.boundingRect(maxContour);
+    if (extractFullDocument) {
+      topLeftCorner = { x: 0, y: 0 };
+      topRightCorner = { x: imageWidth, y: 0 };
+      bottomLeftCorner = { x: 0, y: imageHeight };
+      bottomRightCorner = { x: imageWidth, y: imageHeight };
+      resultWidth = imageWidth;
+      resultHeight = imageHeight;
+    } else {
+      const maxContour = this.findPaperContour(src);
 
-    let dsize = new cv.Size(width, height);
+      if (!maxContour) {
+        topLeftCorner = { x: 0, y: 0 };
+        topRightCorner = { x: imageWidth, y: 0 };
+        bottomLeftCorner = { x: 0, y: imageHeight };
+        bottomRightCorner = { x: imageWidth, y: imageHeight };
+        resultWidth = imageWidth;
+        resultHeight = imageHeight;
+      }
+
+      const contourPoints = this.getCornerPoints(maxContour);
+      topLeftCorner = contourPoints.topLeftCorner;
+      topRightCorner = contourPoints.topRightCorner;
+      bottomLeftCorner = contourPoints.bottomLeftCorner;
+      bottomRightCorner = contourPoints.bottomRightCorner;
+
+      const contourRect = cv.boundingRect(maxContour);
+      resultWidth = contourRect.width;
+      resultHeight = contourRect.height;
+    }
+
+    let dsize = new cv.Size(resultWidth, resultHeight);
     let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
       topLeftCorner.x,
       topLeftCorner.y,
@@ -293,12 +334,12 @@ export class DocumentScannerService {
     let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
       0,
       0,
-      width,
+      resultWidth,
       0,
       0,
-      height,
-      width,
-      height,
+      resultHeight,
+      resultWidth,
+      resultHeight,
     ]);
 
     let M = cv.getPerspectiveTransform(srcTri, dstTri);
@@ -354,12 +395,10 @@ export class DocumentScannerService {
       let contourArea = cv.contourArea(contour);
 
       if (contourArea > maxArea) {
-        // Approximate the contour with a polygon
-        let epsilon = 0.01 * cv.arcLength(contour, true);
+        let epsilon = 0.1 * cv.arcLength(contour, true);
         let approxCurve = new cv.Mat();
         cv.approxPolyDP(contour, approxCurve, epsilon, true);
 
-        // Check if the polygon has four vertices (indicating a rectangle)
         if (approxCurve.rows === 4) {
           maxArea = contourArea;
           maxRect = approxCurve;
@@ -433,5 +472,11 @@ export class DocumentScannerService {
 
   distance(p1: { x: number; y: number }, p2: { x: number; y: number }) {
     return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+  }
+
+  cropDocumentManually() {
+    this.getExtractedPaper(
+      !this.useAutoCapturing || (this.useAutoCapturing && !this.autoCropping)
+    );
   }
 }

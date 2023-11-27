@@ -12,17 +12,120 @@
     width: 100vw;
     height: 100vh;
 
+    .top-left-angle,
+    .top-right-angle,
+    .bottom-left-angle,
+    .bottom-right-angle {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      margin: 10px;
+      z-index: 1000;
+    }
+
+    .top-left-angle {
+      top: 0px;
+      left: 0px;
+    }
+
+    .top-right-angle {
+      top: 0px;
+      right: 0px;
+      transform: rotate(90deg);
+    }
+
+    .bottom-left-angle {
+      bottom: 0px;
+      left: 0px;
+      transform: rotate(270deg);
+    }
+
+    .bottom-right-angle {
+      bottom: 0px;
+      right: 0px;
+      transform: rotate(180deg);
+    }
+
+    .switch-capturing-mode-btn {
+      width: 60px;
+      height: 40px;
+      background-color: #00000080;
+      border-radius: 8px;
+      outline: none;
+      border: none;
+      cursor: pointer;
+      z-index: 1001;
+      position: absolute;
+      top: 25px;
+      right: 25px;
+      color: white;
+      font-weight: 400;
+    }
+
     .message {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
+      width: max-content;
+      padding: 8px 16px;
+      border-radius: 14pt;
+      background-color: #212121b8;
+      font-weight: 400;
+      color: #fff;
+      text-align: center;
       z-index: 1001;
-      background: gray;
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      font-size: 12px;
+
+      .loading-dots {
+        text-align: center;
+        margin-top: 5px;
+
+        @keyframes scale {
+          0% {
+            transform: scale(0);
+          }
+
+          11% {
+            transform: scale(0.5);
+            display: inline-block;
+          }
+
+          22% {
+            transform: scale(0.75);
+          }
+
+          33% {
+            transform: scale(1);
+          }
+
+          44% {
+            transform: scale(0.75);
+          }
+
+          55% {
+            transform: scale(0.5);
+          }
+
+          66% {
+            transform: scale(0);
+          }
+
+          100% {
+            transform: scale(0);
+          }
+        }
+
+        span {
+          width: 8px;
+          height: 8px;
+          margin-right: 5px;
+          display: inline-block;
+          -webkit-animation: scale 0.9s infinite;
+          animation: scale 0.9s infinite;
+          border-radius: 50%;
+          background-color: #fff;
+        }
+      }
     }
 
     #videoInput,
@@ -32,19 +135,49 @@
       left: 0;
     }
 
-    .capture-image-btn,
-    .switch-camera-btn {
+    .bottom-controls-container {
       position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
+      bottom: 0px;
+      left: 0px;
       z-index: 1000;
-    }
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin-bottom: 10px;
 
-    .switch-camera-btn {
-      left: unset;
-      transform: unset;
-      right: 0;
+      .capture-cancel-btn,
+      .file-upload-btn {
+        width: 40px;
+        height: 40px;
+        background-color: #00000080;
+        border-radius: 8px;
+        outline: none;
+        border: none;
+        cursor: pointer;
+      }
+
+      .capture-image-btn {
+        width: 48px;
+        height: 48px;
+        border: none;
+        outline: none;
+        pointer-events: initial;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        position: relative;
+        top: -2px;
+      }
+
+      .capture-cancel-btn {
+      }
+
+      .file-upload-btn {
+      }
     }
   }
 }
