@@ -46,9 +46,18 @@ export class DocumentScannerService {
   };
 
   openCamera = async () => {
+    const windowWidth =
+      window.innerWidth ||
+      document.documentElement.clientWidth ||
+      document.body.clientWidth;
+    const windowHeight =
+      window.innerHeight ||
+      document.documentElement.clientHeight ||
+      document.body.clientHeight;
+
     let video = document.getElementById('videoInput') as HTMLVideoElement;
-    video.setAttribute('width', screen.availWidth + '');
-    video.setAttribute('height', screen.availHeight + '');
+    video.setAttribute('width', windowWidth + '');
+    video.setAttribute('height', windowHeight + '');
     // needed for ios
     video.setAttribute('autoplay', '');
     video.setAttribute('muted', '');
