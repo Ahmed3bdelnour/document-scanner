@@ -114,7 +114,6 @@ export class DocumentScannerService {
               }
 
               this.extractPaper(src, extractedPaper);
-
               cv.imshow('canvasOutput', extractedPaper);
 
               const resultCanvas = document.getElementById(
@@ -348,19 +347,27 @@ export class DocumentScannerService {
     );
 
     let maxArea = 0.15 * img.rows * img.cols;
+    let maxRect = null;
 
-    let maxContourIndex = -1;
     for (let i = 0; i < contours.size(); ++i) {
-      let contourArea = cv.contourArea(contours.get(i));
+      let contour = contours.get(i);
+      let contourArea = cv.contourArea(contour);
 
       if (contourArea > maxArea) {
-        maxArea = contourArea;
-        maxContourIndex = i;
+        // Approximate the contour with a polygon
+        let epsilon = 0.02 * cv.arcLength(contour, true);
+        let approxCurve = new cv.Mat();
+        cv.approxPolyDP(contour, approxCurve, epsilon, true);
+
+        // Check if the polygon has four vertices (indicating a rectangle)
+        if (approxCurve.rows === 4) {
+          maxArea = contourArea;
+          maxRect = approxCurve;
+        }
+
+        approxCurve.delete();
       }
     }
-
-    const maxContour =
-      maxContourIndex !== -1 ? contours.get(maxContourIndex) : null;
 
     imgGray.delete();
     imgBlur.delete();
@@ -368,7 +375,7 @@ export class DocumentScannerService {
     contours.delete();
     hierarchy.delete();
 
-    return maxContour;
+    return maxRect;
   }
 
   /**
