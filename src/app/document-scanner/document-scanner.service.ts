@@ -404,7 +404,7 @@ export class DocumentScannerService {
       let contourArea = cv.contourArea(contour);
 
       if (contourArea > maxArea) {
-        let epsilon = 0.1 * cv.arcLength(contour, true);
+        let epsilon = 0.05 * cv.arcLength(contour, true);
         let approxCurve = new cv.Mat();
         cv.approxPolyDP(contour, approxCurve, epsilon, true);
 
