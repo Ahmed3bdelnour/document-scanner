@@ -1,8 +1,8 @@
 import {
+  AfterViewInit,
   Component,
   EventEmitter,
   OnDestroy,
-  OnInit,
   Output,
 } from '@angular/core';
 
@@ -18,9 +18,10 @@ enum FacingMode {
   templateUrl: './document-scanner.component.html',
   styleUrls: ['./document-scanner.component.scss'],
 })
-export class DocumentScannerComponent implements OnInit, OnDestroy {
+export class DocumentScannerComponent implements AfterViewInit, OnDestroy {
   @Output() onScan = new EventEmitter();
   @Output() onCancel = new EventEmitter();
+  @Output() onClose = new EventEmitter();
 
   isStreaming = false;
   noContour = false;
@@ -28,11 +29,12 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
   useAutoCapturing = true;
   autoCropping = false;
   autoCropTimeoutId: any;
-  src: any;
 
   constructor() {}
 
-  ngOnInit() {}
+  ngAfterViewInit(): void {
+    this.startScanning();
+  }
 
   handleFileUpload(event: Event) {
     console.log((event.target as HTMLInputElement).files);
@@ -60,18 +62,14 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
     return (this.getVideoElement()?.srcObject as MediaStream) || null;
   }
 
-  deleteOpenCVObject(openCVObject: any) {
-    if (!openCVObject) return;
-
-    openCVObject.delete();
-    openCVObject = null;
-  }
-
   endScanning = () => {
     this.isStreaming = false;
     this.noContour = false;
     this.smallContour = false;
     this.autoCropping = false;
+
+    const video = this.getVideoElement();
+    if (!video) return;
 
     const currentStream = this.getCurrentVideoStream();
     if (!currentStream) return;
@@ -82,7 +80,9 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       track.stop();
     });
 
-    this.getVideoElement().srcObject = null;
+    video.srcObject = null;
+
+    this.onClose.emit();
   };
 
   startScanning = async () => {
@@ -131,90 +131,99 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
 
       this.isStreaming = true;
 
-      this.src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-      let cap = new cv.VideoCapture(video);
+      let videoCapture = new cv.VideoCapture(video);
+
+      let processTimeout: any;
 
       const processVideo = () => {
-        try {
-          if (!this.isStreaming) {
-            // clean and stop.
-            this.deleteOpenCVObject(this.src);
-            return;
+        if (initialProcessTimeout) clearTimeout(initialProcessTimeout);
+        if (processTimeout) clearTimeout(processTimeout);
+
+        if (!this.isStreaming) return;
+
+        let begin = Date.now();
+
+        let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+        // start processing.
+        videoCapture.read(src);
+
+        if (this.useAutoCapturing) {
+          let contour = this.findPaperContour(src);
+
+          const {
+            topLeftCorner,
+            topRightCorner,
+            bottomLeftCorner,
+            bottomRightCorner,
+          } = this.getCornerPoints(contour);
+
+          this.noContour =
+            !contour ||
+            !topLeftCorner ||
+            !topRightCorner ||
+            !bottomLeftCorner ||
+            !bottomRightCorner;
+
+          let highlightedPaper = new cv.Mat(
+            video.height,
+            video.width,
+            cv.CV_8UC4
+          );
+
+          this.highlightPaper(
+            src,
+            highlightedPaper,
+            topLeftCorner,
+            topRightCorner,
+            bottomLeftCorner,
+            bottomRightCorner
+          );
+
+          this.smallContour =
+            !this.noContour && cv.boundingRect(contour).width < 0.9 * src.cols;
+
+          contour?.delete();
+          contour = null;
+
+          const shouldAutoCrop = !this.noContour && !this.smallContour;
+
+          if (shouldAutoCrop && this.autoCropTimeoutId === undefined) {
+            this.autoCropping = true;
+            this.autoCropTimeoutId = setTimeout(() => {
+              if (!shouldAutoCrop) {
+                clearTimeout(this.autoCropTimeoutId);
+                this.autoCropTimeoutId = undefined;
+                return;
+              }
+
+              this.getExtractedPaper();
+            }, 1000);
+          } else if (!shouldAutoCrop && this.autoCropTimeoutId !== undefined) {
+            clearTimeout(this.autoCropTimeoutId);
+            this.autoCropTimeoutId = undefined;
+            this.autoCropping = false;
           }
 
-          let begin = Date.now();
-          // start processing.
-          cap.read(this.src);
+          cv.imshow('canvasOutput', this.noContour ? src : highlightedPaper);
 
-          if (this.useAutoCapturing) {
-            const contour = this.findPaperContour(this.src);
-            const {
-              topLeftCorner,
-              topRightCorner,
-              bottomLeftCorner,
-              bottomRightCorner,
-            } = this.getCornerPoints(contour);
-
-            this.noContour =
-              !contour ||
-              !topLeftCorner ||
-              !topRightCorner ||
-              !bottomLeftCorner ||
-              !bottomRightCorner;
-
-            const highlightedPaper = this.highlightPaper(
-              this.src,
-              topLeftCorner,
-              topRightCorner,
-              bottomLeftCorner,
-              bottomRightCorner
-            );
-
-            this.smallContour =
-              !this.noContour &&
-              cv.boundingRect(contour).width < 0.9 * this.src.cols;
-
-            const shouldAutoCrop = !this.noContour && !this.smallContour;
-
-            if (shouldAutoCrop && this.autoCropTimeoutId === undefined) {
-              this.autoCropping = true;
-              this.autoCropTimeoutId = setTimeout(() => {
-                if (!shouldAutoCrop) {
-                  clearTimeout(this.autoCropTimeoutId);
-                  this.autoCropTimeoutId = undefined;
-                  return;
-                }
-
-                this.getExtractedPaper();
-              }, 1000);
-            } else if (
-              !shouldAutoCrop &&
-              this.autoCropTimeoutId !== undefined
-            ) {
-              clearTimeout(this.autoCropTimeoutId);
-              this.autoCropTimeoutId = undefined;
-              this.autoCropping = false;
-            }
-
-            cv.imshow(
-              'canvasOutput',
-              this.noContour ? this.src : highlightedPaper
-            );
-          } else {
-            cv.imshow('canvasOutput', this.src);
-          }
-
-          // schedule the next one.
-          const FPS = this.getVideoFrameRate(this.getCurrentVideoStream());
-          const delay = 1000 / FPS - (Date.now() - begin);
-          setTimeout(processVideo, delay);
-        } catch (err) {
-          alert(err);
+          highlightedPaper.delete();
+          highlightedPaper = null;
+        } else {
+          cv.imshow('canvasOutput', src);
         }
+
+        src.delete();
+        src = null;
+
+        // schedule the next one.
+        const FPS = this.getVideoFrameRate(this.getCurrentVideoStream());
+        const delay = 1000 / FPS - (Date.now() - begin);
+        processTimeout = setTimeout(processVideo, delay);
       };
 
       // schedule the first one.
-      setTimeout(processVideo, 0);
+      const initialProcessTimeout = setTimeout(processVideo, 0);
+      video.onloadedmetadata = null;
     };
   };
 
@@ -227,8 +236,11 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
     const video = this.getVideoElement();
     if (!video) throw new Error('No video element');
 
-    const extractedPaper = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-    this.extractPaper(this.src, extractedPaper, extractFullDocument);
+    let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+    let extractedPaper = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+
+    this.extractPaper(src, extractedPaper, extractFullDocument);
+
     cv.imshow('canvasOutput', extractedPaper);
 
     const resultCanvas = document.getElementById(
@@ -242,7 +254,11 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
 
     this.endScanning();
 
-    this.deleteOpenCVObject(extractedPaper);
+    src.delete();
+    src = null;
+
+    extractedPaper.delete();
+    extractedPaper = null;
   }
 
   getVideoFrameRate(stream: MediaStream) {
@@ -264,13 +280,14 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
    */
   highlightPaper(
     src: any,
+    dst: any,
     topLeftCorner: any,
     topRightCorner: any,
     bottomLeftCorner: any,
     bottomRightCorner: any,
     options = { color: new cv.Scalar(255, 255, 0, 255), thickness: 1 }
   ) {
-    const dst = src.clone();
+    src.copyTo(dst);
 
     if (
       !topLeftCorner ||
@@ -278,7 +295,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       !bottomLeftCorner ||
       !bottomRightCorner
     )
-      return dst;
+      return;
 
     cv.line(
       dst,
@@ -308,8 +325,6 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       options.color,
       options.thickness
     );
-
-    return dst;
   }
 
   /**
@@ -339,9 +354,9 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       resultWidth = imageWidth;
       resultHeight = imageHeight;
     } else {
-      const maxContour = this.findPaperContour(src);
+      let contour = this.findPaperContour(src);
 
-      if (!maxContour) {
+      if (!contour) {
         topLeftCorner = { x: 0, y: 0 };
         topRightCorner = { x: imageWidth, y: 0 };
         bottomLeftCorner = { x: 0, y: imageHeight };
@@ -350,7 +365,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
         resultHeight = imageHeight;
       }
 
-      const contourPoints = this.getCornerPoints(maxContour);
+      const contourPoints = this.getCornerPoints(contour);
 
       if (
         !contourPoints.topLeftCorner ||
@@ -370,10 +385,13 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
         bottomLeftCorner = contourPoints.bottomLeftCorner;
         bottomRightCorner = contourPoints.bottomRightCorner;
 
-        const contourRect = cv.boundingRect(maxContour);
+        const contourRect = cv.boundingRect(contour);
         resultWidth = contourRect.width;
         resultHeight = contourRect.height;
       }
+
+      contour?.delete();
+      contour = null;
     }
 
     let dsize = new cv.Size(resultWidth, resultHeight);
@@ -410,8 +428,11 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       new cv.Scalar()
     );
 
-    this.deleteOpenCVObject(srcTri);
-    this.deleteOpenCVObject(dstTri);
+    srcTri.delete();
+    srcTri = null;
+
+    dstTri.delete();
+    dstTri = null;
   }
 
   /**
@@ -420,10 +441,10 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
    * @returns the biggest contour inside the image
    */
   findPaperContour(img: any) {
-    const imgGray = new cv.Mat();
+    let imgGray = new cv.Mat();
     cv.cvtColor(img, imgGray, cv.COLOR_RGBA2GRAY);
 
-    const imgBlur = new cv.Mat();
+    let imgBlur = new cv.Mat();
     cv.GaussianBlur(
       imgGray,
       imgBlur,
@@ -433,7 +454,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       cv.BORDER_DEFAULT
     );
 
-    const imgThresh = new cv.Mat();
+    let imgThresh = new cv.Mat();
     cv.threshold(imgBlur, imgThresh, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
 
     let contours = new cv.MatVector();
@@ -448,7 +469,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
     );
 
     let maxArea = 0.15 * img.rows * img.cols;
-    let maxRect = null;
+    let maxContour = null;
 
     for (let i = 0; i < contours.size(); ++i) {
       let contour = contours.get(i);
@@ -461,20 +482,30 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
 
         if (approxCurve.rows === 4) {
           maxArea = contourArea;
-          maxRect = approxCurve;
+          maxContour = approxCurve;
         } else {
-          this.deleteOpenCVObject(approxCurve);
+          approxCurve.delete();
+          approxCurve = null;
         }
       }
     }
 
-    this.deleteOpenCVObject(imgGray);
-    this.deleteOpenCVObject(imgBlur);
-    this.deleteOpenCVObject(imgThresh);
-    this.deleteOpenCVObject(contours);
-    this.deleteOpenCVObject(hierarchy);
+    imgGray.delete();
+    imgGray = null;
 
-    return maxRect;
+    imgBlur.delete();
+    imgBlur = null;
+
+    imgThresh.delete();
+    imgThresh = null;
+
+    contours.delete();
+    contours = null;
+
+    hierarchy.delete();
+    hierarchy = null;
+
+    return maxContour;
   }
 
   /**
@@ -501,6 +532,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
     let bottomLeftCornerDist = 0;
     let bottomRightCorner;
     let bottomRightCornerDist = 0;
+
     for (let i = 0; i < contour.data32S.length; i += 2) {
       const point = { x: contour.data32S[i], y: contour.data32S[i + 1] };
       const dist = this.distance(point, center);

@@ -7,6 +7,7 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   scannedDocumentURL = '';
+  showDocumentScanner = false;
 
   handleScannedDocument(scannedDocumentURL: string) {
     this.scannedDocumentURL = scannedDocumentURL;

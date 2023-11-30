@@ -1,11 +1,12 @@
-<button class="btn" (click)="documentScanner.startScanning()">SCAN</button>
+<button class="btn" (click)="showDocumentScanner = true">SCAN</button>
 
 <div>
-  <img *ngIf="scannedDocumentURL" [src]="scannedDocumentURL" />
+  <img *ngIf="false" [src]="scannedDocumentURL" />
 </div>
 
 <app-document-scanner
-  #documentScanner
+  *ngIf="showDocumentScanner"
   (onScan)="handleScannedDocument($event)"
   (onCancel)="handleCancelScanning()"
+  (onClose)="showDocumentScanner = false"
 ></app-document-scanner>
