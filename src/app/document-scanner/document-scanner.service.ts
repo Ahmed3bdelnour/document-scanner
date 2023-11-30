@@ -15,7 +15,7 @@ export class DocumentScannerService {
   currentStream: MediaStream | null = null;
   noContour = false;
   smallContour = false;
-  useAutoCapturing = false;
+  useAutoCapturing = true;
   autoCropping = false;
   resultPaperUrl = '';
 
@@ -89,8 +89,8 @@ export class DocumentScannerService {
       this.isStreaming = true;
 
       this.src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-      let highlightedPaper = new cv.Mat(video.height, video.width, cv.CV_8UC4);
       this.extractedPaper = new cv.Mat();
+      let highlightedPaper = new cv.Mat(video.height, video.width, cv.CV_8UC4);
       let cap = new cv.VideoCapture(video);
 
       const FPS = this.getVideoFrameRate(this.currentStream as MediaStream);
@@ -99,10 +99,9 @@ export class DocumentScannerService {
         try {
           if (!this.isStreaming) {
             // clean and stop.
-
             this.src.delete();
-            highlightedPaper.delete();
             this.extractedPaper.delete();
+            highlightedPaper.delete();
             return;
           }
 
@@ -115,6 +114,7 @@ export class DocumentScannerService {
               this.src,
               highlightedPaper
             );
+
             this.noContour =
               !contour ||
               !contourPoints ||
@@ -409,7 +409,7 @@ export class DocumentScannerService {
       let contourArea = cv.contourArea(contour);
 
       if (contourArea > maxArea) {
-        let epsilon = 0.05 * cv.arcLength(contour, true);
+        let epsilon = 0.02 * cv.arcLength(contour, true);
         let approxCurve = new cv.Mat();
         cv.approxPolyDP(contour, approxCurve, epsilon, true);
 
