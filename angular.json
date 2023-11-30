@@ -33,7 +33,8 @@
             "styles": ["src/styles.scss"],
             "scripts": [
               "./src/assets/js/webrtc.adapter-5.0.4.js",
-              "./node_modules/opencv.js/opencv.js"
+              "./node_modules/jscanify/src/opencv.js",
+              "./node_modules/jscanify/src/jscanify.js"
             ]
           },
           "configurations": {
@@ -99,7 +100,8 @@
             "styles": ["src/styles.scss"],
             "scripts": [
               "./src/assets/js/webrtc.adapter-5.0.4.js",
-              "./node_modules/opencv.js/opencv.js"
+              "./node_modules/jscanify/src/opencv.js",
+              "./node_modules/jscanify/src/jscanify.js"
             ]
           }
         }
