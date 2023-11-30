@@ -1,75 +1,60 @@
-<div class="fax-mobile-scan">
-  <button class="btn" (click)="scanDocument()">SCAN</button>
+<div class="camera-stream-container" [hidden]="!isStreaming">
+  <img class="top-left-angle" src="assets/svg/right-angle.svg" />
+  <img class="top-right-angle" src="assets/svg/right-angle.svg" />
+  <img class="bottom-left-angle" src="assets/svg/right-angle.svg" />
+  <img class="bottom-right-angle" src="assets//svg/right-angle.svg" />
 
-  <div>
-    <img [src]="documentScannerService.resultPaperUrl" />
-  </div>
+  <button class="switch-capturing-mode-btn" (click)="switchCapturingMode()">
+    {{ useAutoCapturing ? "Manual" : "Auto" }}
+  </button>
 
   <div
-    class="camera-stream-container"
-    [hidden]="!documentScannerService.isStreaming"
+    class="message"
+    *ngIf="
+      useAutoCapturing &&
+      isStreaming &&
+      (noContour || smallContour || autoCropping)
+    "
   >
-    <img class="top-left-angle" src="assets/svg/right-angle.svg" />
-    <img class="top-right-angle" src="assets/svg/right-angle.svg" />
-    <img class="bottom-left-angle" src="assets/svg/right-angle.svg" />
-    <img class="bottom-right-angle" src="assets//svg/right-angle.svg" />
+    <ng-container *ngIf="noContour"
+      >Looking for document
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+    </ng-container>
 
-    <button class="switch-capturing-mode-btn" (click)="switchCapturingMode()">
-      {{ documentScannerService.useAutoCapturing ? "Manual" : "Auto" }}
-    </button>
+    <ng-container *ngIf="smallContour"><= Get camera closer =></ng-container>
 
-    <div
-      class="message"
-      *ngIf="
-        documentScannerService.useAutoCapturing &&
-        documentScannerService.isStreaming &&
-        (documentScannerService.noContour ||
-          documentScannerService.smallContour ||
-          documentScannerService.autoCropping)
-      "
-    >
-      <ng-container *ngIf="documentScannerService.noContour"
-        >Looking for document
-        <div class="loading-dots"><span></span><span></span><span></span></div>
-      </ng-container>
+    <ng-container *ngIf="autoCropping">Cropping...</ng-container>
+  </div>
 
-      <ng-container *ngIf="documentScannerService.smallContour"
-        ><= Get camera closer =></ng-container
-      >
+  <video id="videoInput"></video>
+  <canvas id="canvasOutput"></canvas>
 
-      <ng-container *ngIf="documentScannerService.autoCropping"
-        >Cropping...</ng-container
-      >
-    </div>
-    <video id="videoInput"></video>
-    <canvas id="canvasOutput"></canvas>
-    <div class="bottom-controls-container">
-      <button class="capture-cancel-btn" (click)="captureCancel()">
-        <img
-          src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICAgIDxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPHBhdGggZD0iTTAgMGgyNHYyNEgweiIvPgogICAgICAgIDxwYXRoIGZpbGw9IiNGRkYiIGQ9Ik0xOSA2LjQxTDE3LjU5IDUgMTIgMTAuNTkgNi40MSA1IDUgNi40MSAxMC41OSAxMiA1IDE3LjU5IDYuNDEgMTkgMTIgMTMuNDEgMTcuNTkgMTkgMTkgMTcuNTkgMTMuNDEgMTJ6Ii8+CiAgICA8L2c+Cjwvc3ZnPgo="
-          alt="Cancel capture"
-        />
-      </button>
-      <button class="capture-image-btn" (click)="captureImage()">
-        <img
-          src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICAgIDxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPHBhdGggZD0iTTAgMGgyNHYyNEgweiIvPgogICAgICAgIDxwYXRoIGZpbGw9IiM5QjlCOUIiIGZpbGwtcnVsZT0ibm9uemVybyIgZD0iTTE1IDJsMS44MyAySDIwYzEuMSAwIDIgLjkgMiAydjEyYzAgMS4xLS45IDItMiAySDRjLTEuMSAwLTItLjktMi0yVjZjMC0xLjEuOS0yIDItMmgzLjE3TDkgMmg2em0tMyA1Yy0yLjc2IDAtNSAyLjI0LTUgNXMyLjI0IDUgNSA1IDUtMi4yNCA1LTUtMi4yNC01LTUtNXptMCAxLjhhMy4yIDMuMiAwIDEgMSAwIDYuNCAzLjIgMy4yIDAgMCAxIDAtNi40eiIvPgogICAgPC9nPgo8L3N2Zz4K"
-          alt="Capture file"
-        />
-      </button>
-      <button class="file-upload-btn" (click)="fileInput.click()">
-        <img
-          src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICAgIDxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik05Ljk2OSA4LjQ4YzAgLjQxNy0uMTUuNzY5LS40NSAxLjA1NS0uMjg2LjI4Ny0uNjMxLjQzLTEuMDM1LjQzLS40MDMgMC0uNzU1LS4xNDMtMS4wNTQtLjQzQzcuMTQzIDkuMjUgNyA4Ljg5NyA3IDguNDhjMC0uNDAzLjE0My0uNzQ4LjQzLTEuMDM1LjMtLjMuNjUtLjQ0OSAxLjA1NC0uNDQ5cy43NS4xNSAxLjAzNi40NWMuMjk5LjI4Ni40NDkuNjMuNDQ5IDEuMDM0em0tNC4wMDQgOC41MTZsMy4wMjctNS4wMiAyLjUgMy4wNDcgMi41LTUuMDU4IDQuMDA0IDcuMDMxSDUuOTY1ek0xOC45OTIgNS4wMDR2MTQuMDA0SDUuMDA4VjUuMDA0aDEzLjk4NHptMS4wMTYtMi4wMTJIMy45OTJjLS4yNzMgMC0uNTA4LjA5OC0uNzAzLjI5My0uMTk1LjE5NS0uMjkzLjQzNi0uMjkzLjcyM3YxNS45OTZjMCAuMjczLjA5OC41MDguMjkzLjcwMy4xOTUuMTk1LjQzLjI5My43MDMuMjkzaDE2LjAxNmMuMjczIDAgLjUwOC0uMDk4LjcwMy0uMjkzLjE5NS0uMTk1LjI5My0uNDMuMjkzLS43MDNWNC4wMDhjMC0uMjg3LS4wOTgtLjUyOC0uMjkzLS43MjMtLjE5NS0uMTk1LS40My0uMjkzLS43MDMtLjI5M3oiLz4KPC9zdmc+Cg=="
-          alt="Upload file"
-        />
-      </button>
-      <input
-        #fileInput
-        type="file"
-        hidden
-        width="0"
-        height="0"
-        (change)="handleFileUpload($event)"
+  <div class="bottom-controls-container">
+    <button class="capture-cancel-btn" (click)="cancelScanning()">
+      <img
+        src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICAgIDxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPHBhdGggZD0iTTAgMGgyNHYyNEgweiIvPgogICAgICAgIDxwYXRoIGZpbGw9IiNGRkYiIGQ9Ik0xOSA2LjQxTDE3LjU5IDUgMTIgMTAuNTkgNi40MSA1IDUgNi40MSAxMC41OSAxMiA1IDE3LjU5IDYuNDEgMTkgMTIgMTMuNDEgMTcuNTkgMTkgMTkgMTcuNTkgMTMuNDEgMTJ6Ii8+CiAgICA8L2c+Cjwvc3ZnPgo="
+        alt="Cancel capture"
       />
-    </div>
+    </button>
+    <button class="capture-image-btn" (click)="cropDocumentManually()">
+      <img
+        src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICAgIDxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPHBhdGggZD0iTTAgMGgyNHYyNEgweiIvPgogICAgICAgIDxwYXRoIGZpbGw9IiM5QjlCOUIiIGZpbGwtcnVsZT0ibm9uemVybyIgZD0iTTE1IDJsMS44MyAySDIwYzEuMSAwIDIgLjkgMiAydjEyYzAgMS4xLS45IDItMiAySDRjLTEuMSAwLTItLjktMi0yVjZjMC0xLjEuOS0yIDItMmgzLjE3TDkgMmg2em0tMyA1Yy0yLjc2IDAtNSAyLjI0LTUgNXMyLjI0IDUgNSA1IDUtMi4yNCA1LTUtMi4yNC01LTUtNXptMCAxLjhhMy4yIDMuMiAwIDEgMSAwIDYuNCAzLjIgMy4yIDAgMCAxIDAtNi40eiIvPgogICAgPC9nPgo8L3N2Zz4K"
+        alt="Capture file"
+      />
+    </button>
+    <button class="file-upload-btn" (click)="fileInput.click()">
+      <img
+        src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICAgIDxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik05Ljk2OSA4LjQ4YzAgLjQxNy0uMTUuNzY5LS40NSAxLjA1NS0uMjg2LjI4Ny0uNjMxLjQzLTEuMDM1LjQzLS40MDMgMC0uNzU1LS4xNDMtMS4wNTQtLjQzQzcuMTQzIDkuMjUgNyA4Ljg5NyA3IDguNDhjMC0uNDAzLjE0My0uNzQ4LjQzLTEuMDM1LjMtLjMuNjUtLjQ0OSAxLjA1NC0uNDQ5cy43NS4xNSAxLjAzNi40NWMuMjk5LjI4Ni40NDkuNjMuNDQ5IDEuMDM0em0tNC4wMDQgOC41MTZsMy4wMjctNS4wMiAyLjUgMy4wNDcgMi41LTUuMDU4IDQuMDA0IDcuMDMxSDUuOTY1ek0xOC45OTIgNS4wMDR2MTQuMDA0SDUuMDA4VjUuMDA0aDEzLjk4NHptMS4wMTYtMi4wMTJIMy45OTJjLS4yNzMgMC0uNTA4LjA5OC0uNzAzLjI5My0uMTk1LjE5NS0uMjkzLjQzNi0uMjkzLjcyM3YxNS45OTZjMCAuMjczLjA5OC41MDguMjkzLjcwMy4xOTUuMTk1LjQzLjI5My43MDMuMjkzaDE2LjAxNmMuMjczIDAgLjUwOC0uMDk4LjcwMy0uMjkzLjE5NS0uMTk1LjI5My0uNDMuMjkzLS43MDNWNC4wMDhjMC0uMjg3LS4wOTgtLjUyOC0uMjkzLS43MjMtLjE5NS0uMTk1LS40My0uMjkzLS43MDMtLjI5M3oiLz4KPC9zdmc+Cg=="
+        alt="Upload file"
+      />
+    </button>
+    <input
+      #fileInput
+      type="file"
+      hidden
+      width="0"
+      height="0"
+      (change)="handleFileUpload($event)"
+    />
   </div>
 </div>

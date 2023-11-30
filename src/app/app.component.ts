@@ -3,8 +3,16 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  title = 'open-cv-document-scanner';
+  scannedDocumentURL = '';
+
+  handleScannedDocument(scannedDocumentURL: string) {
+    this.scannedDocumentURL = scannedDocumentURL;
+  }
+
+  handleCancelScanning() {
+    console.log('Scanning cancelled');
+  }
 }
