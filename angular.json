@@ -32,9 +32,8 @@
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": ["src/styles.scss"],
             "scripts": [
-              "./src/assets/js/webrtc.adapter-5.0.4.js",
-              "./node_modules/jscanify/src/opencv.js",
-              "./node_modules/jscanify/src/jscanify.js"
+              "./src/assets/js/webrtc.adapter-8.0.0.js",
+              "./src/assets/js/opencv-4.8.0.js"
             ]
           },
           "configurations": {
@@ -99,9 +98,8 @@
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": ["src/styles.scss"],
             "scripts": [
-              "./src/assets/js/webrtc.adapter-5.0.4.js",
-              "./node_modules/jscanify/src/opencv.js",
-              "./node_modules/jscanify/src/jscanify.js"
+              "./src/assets/js/webrtc.adapter-8.0.0.js",
+              "./src/assets/js/opencv-4.8.0.js"
             ]
           }
         }

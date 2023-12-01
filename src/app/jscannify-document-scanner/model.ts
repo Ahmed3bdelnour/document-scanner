@@ -16,12 +16,12 @@ export class jscanify {
   findPaperContour(img) {
     console.log('findPaperContour execution: start - src image matrix ', img);
 
-    const imgGray = new cv.Mat();
+    let imgGray = new cv.Mat();
     cv.cvtColor(img, imgGray, cv.COLOR_RGBA2GRAY);
 
     console.log('findPaperContour execution: imgGray ', imgGray);
 
-    const imgBlur = new cv.Mat();
+    let imgBlur = new cv.Mat();
     cv.GaussianBlur(
       imgGray,
       imgBlur,
@@ -33,7 +33,7 @@ export class jscanify {
 
     console.log('findPaperContour execution: imgBlur ', imgBlur);
 
-    const imgThresh = new cv.Mat();
+    let imgThresh = new cv.Mat();
     cv.threshold(imgBlur, imgThresh, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
 
     console.log('findPaperContour execution: imgThresh ', imgThresh);
@@ -79,6 +79,12 @@ export class jscanify {
     contours.delete();
     hierarchy.delete();
 
+    imgGray = null;
+    imgBlur = null;
+    imgThresh = null;
+    contours = null;
+    hierarchy = null;
+
     console.log(
       'findPaperContour execution: cleaning matrixes',
       imgGray,
@@ -104,12 +110,14 @@ export class jscanify {
     options.color = options.color || 'orange';
     options.thickness = options.thickness || 10;
     const canvas = document.createElement('canvas');
+    console.log('highlightPaper execution: canvas ', canvas);
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    const img = cv.imread(image);
+    console.log('highlightPaper execution: canvas ctx ', ctx);
+    let img = cv.imread(image);
 
     console.log('highlightPaper execution: src img martrix ', img);
 
-    const maxContour = this.findPaperContour(img);
+    let maxContour = this.findPaperContour(img);
     cv.imshow(canvas, img);
 
     console.log('highlightPaper execution:  maxContour ', maxContour);
@@ -157,6 +165,9 @@ export class jscanify {
     img.delete();
     maxContour.delete();
 
+    img = null;
+    maxContour = null;
+
     console.log(
       'highlightPaper execution: cleaning img and maxContour ',
       img,
@@ -177,9 +188,9 @@ export class jscanify {
   extractPaper(image, resultWidth, resultHeight, cornerPoints) {
     const canvas = document.createElement('canvas');
 
-    const img = cv.imread(image);
+    let img = cv.imread(image);
 
-    const maxContour = this.findPaperContour(img);
+    let maxContour = this.findPaperContour(img);
 
     const {
       topLeftCorner,
@@ -230,8 +241,14 @@ export class jscanify {
     maxContour.delete();
     srcTri.delete();
     dstTri.delete();
-
     M.delete();
+
+    img = null;
+    warpedDst = null;
+    maxContour = null;
+    srcTri = null;
+    dstTri = null;
+    M = null;
 
     return canvas;
   }
