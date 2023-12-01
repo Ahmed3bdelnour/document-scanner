@@ -14,8 +14,12 @@ export class jscanify {
    * @returns the biggest contour inside the image
    */
   findPaperContour(img) {
+    console.log('findPaperContour execution: start - src image matrix ', img);
+
     const imgGray = new cv.Mat();
     cv.cvtColor(img, imgGray, cv.COLOR_RGBA2GRAY);
+
+    console.log('findPaperContour execution: imgGray ', imgGray);
 
     const imgBlur = new cv.Mat();
     cv.GaussianBlur(
@@ -27,8 +31,12 @@ export class jscanify {
       cv.BORDER_DEFAULT
     );
 
+    console.log('findPaperContour execution: imgBlur ', imgBlur);
+
     const imgThresh = new cv.Mat();
     cv.threshold(imgBlur, imgThresh, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
+
+    console.log('findPaperContour execution: imgThresh ', imgThresh);
 
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
@@ -40,8 +48,12 @@ export class jscanify {
       cv.RETR_CCOMP,
       cv.CHAIN_APPROX_SIMPLE
     );
+
+    console.log('findPaperContour execution: contours ', contours);
+
     let maxArea = 0;
     let maxContourIndex = -1;
+
     for (let i = 0; i < contours.size(); ++i) {
       let contourArea = cv.contourArea(contours.get(i));
       if (contourArea > maxArea) {
@@ -50,13 +62,32 @@ export class jscanify {
       }
     }
 
-    const maxContour = contours.get(maxContourIndex);
+    console.log(
+      'findPaperContour execution: maxArea, maxContourIndex ',
+      maxArea,
+      maxContourIndex
+    );
+
+    const maxContour =
+      maxContourIndex !== -1 ? contours.get(maxContourIndex) : null;
+
+    console.log('findPaperContour execution: maxContour ', maxContour);
 
     imgGray.delete();
     imgBlur.delete();
     imgThresh.delete();
     contours.delete();
     hierarchy.delete();
+
+    console.log(
+      'findPaperContour execution: cleaning matrixes',
+      imgGray,
+      imgBlur,
+      imgThresh,
+      contours,
+      hierarchy
+    );
+
     return maxContour;
   }
 
@@ -67,15 +98,21 @@ export class jscanify {
    * @returns `HTMLCanvasElement` with original image and paper highlighted
    */
   highlightPaper(image, options) {
+    console.log('highlightPaper execution: start');
+
     options = options || {};
     options.color = options.color || 'orange';
     options.thickness = options.thickness || 10;
     const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const img = cv.imread(image);
+
+    console.log('highlightPaper execution: src img martrix ', img);
 
     const maxContour = this.findPaperContour(img);
     cv.imshow(canvas, img);
+
+    console.log('highlightPaper execution:  maxContour ', maxContour);
 
     if (maxContour) {
       const {
@@ -84,6 +121,14 @@ export class jscanify {
         bottomLeftCorner,
         bottomRightCorner,
       } = this.getCornerPoints(maxContour, img);
+
+      console.log(
+        'highlightPaper execution: contour Points ',
+        topLeftCorner,
+        topRightCorner,
+        bottomLeftCorner,
+        bottomRightCorner
+      );
 
       if (
         topLeftCorner &&
@@ -100,11 +145,23 @@ export class jscanify {
         ctx.lineTo(...Object.values(bottomLeftCorner));
         ctx.lineTo(...Object.values(topLeftCorner));
         ctx.stroke();
+
+        console.log(
+          'highlightPaper execution: result canvas context ',
+          ctx,
+          canvas
+        );
       }
     }
 
     img.delete();
     maxContour.delete();
+
+    console.log(
+      'highlightPaper execution: cleaning img and maxContour ',
+      img,
+      maxContour
+    );
 
     return canvas;
   }
@@ -185,8 +242,16 @@ export class jscanify {
    * @returns object with properties `topLeftCorner`, `topRightCorner`, `bottomLeftCorner`, `bottomRightCorner`, each with `x` and `y` property
    */
   getCornerPoints(contour) {
+    console.log('getCornerPoints execution: start ', contour);
+
     let rect = cv.minAreaRect(contour);
     const center = rect.center;
+
+    console.log(
+      'getCornerPoints execution: minRectArea and center ',
+      rect,
+      center
+    );
 
     let topLeftCorner;
     let topLeftCornerDist = 0;
@@ -229,6 +294,13 @@ export class jscanify {
         }
       }
     }
+
+    console.log('getCornerPoints execution: contour points result ', {
+      topLeftCorner,
+      topRightCorner,
+      bottomLeftCorner,
+      bottomRightCorner,
+    });
 
     return {
       topLeftCorner,

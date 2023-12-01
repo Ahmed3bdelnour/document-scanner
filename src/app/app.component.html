@@ -1,6 +1,8 @@
-<!-- <button class="btn" (click)="showDocumentScanner = true">SCAN</button>
+<button class="btn" (click)="showDocumentScanner = !showDocumentScanner">
+  SCAN
+</button>
 
-<div>
+<!-- <div>
   <img *ngIf="false" [src]="scannedDocumentURL" />
 </div>
 
@@ -11,4 +13,6 @@
   (onClose)="showDocumentScanner = false"
 ></app-document-scanner> -->
 
-<app-jscannify-document-scanner></app-jscannify-document-scanner>
+<app-jscannify-document-scanner
+  *ngIf="showDocumentScanner"
+></app-jscannify-document-scanner>
