@@ -1,6 +1,4 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-declare var jscanify: any;
-
 @Component({
   selector: 'app-jscannify-document-scanner',
   templateUrl: './jscannify-document-scanner.component.html',
@@ -14,7 +12,7 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   ngOnInit() {}
 
   ngAfterViewInit(): void {
-    const scanner = new jscanify();
+    // const scanner = new jscanify();
 
     const canvas = document.getElementById('canvas')! as HTMLCanvasElement;
     const result = document.getElementById('result')! as HTMLCanvasElement;
@@ -38,14 +36,15 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
 
           this.highlightInterval = setInterval(() => {
             canvasCtx.drawImage(video, 0, 0);
-            const resultCanvas = scanner.highlightPaper(canvas, {
-              color: 'yellow',
-              thickness: 1.5,
-            });
-            resultCtx.drawImage(resultCanvas, 0, 0);
-          }, 10);
 
-          video.onloadedmetadata = null;
+            // const resultCanvas = scanner.highlightPaper(canvas, {
+            //   color: 'yellow',
+            //   thickness: 1.5,
+            // });
+            // resultCtx.drawImage(resultCanvas, 0, 0);
+
+            resultCtx.drawImage(canvas, 0, 0);
+          }, 10);
         };
       })
       .catch((error) => alert('Failed to open camera: ' + error));
