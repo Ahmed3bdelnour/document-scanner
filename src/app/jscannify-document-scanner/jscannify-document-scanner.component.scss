@@ -1,0 +1,23 @@
+.document-scanner-container {
+  //   position: fixed;
+  //   top: 0;
+  //   left: 0;
+  //   height: 100%;
+  //   width: 100%;
+  //   z-index: 1000;
+
+  #video,
+  #canvas,
+  #result {
+    // position: absolute;
+    // top: 0px;
+    // left: 0px;
+    // height: 100%;
+    // width: 100%;
+    // object-fit: cover;
+  }
+
+  #video {
+    // background: black;
+  }
+}

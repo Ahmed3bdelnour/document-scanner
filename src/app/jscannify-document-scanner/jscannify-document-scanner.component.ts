@@ -48,12 +48,7 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
           video.onloadedmetadata = null;
         };
       })
-      .catch((error) =>
-        alert(
-          'Failed to open camera. Please make sure that camera is not used by another application and try again.\n' +
-            error
-        )
-      );
+      .catch((error) => alert('Failed to open camera: ' + error));
   }
 
   ngOnDestroy(): void {
