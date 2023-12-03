@@ -1,10 +1,6 @@
 // @ts-nocheck
 declare var cv: any;
 
-function distance(p1, p2) {
-  return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
-}
-
 export class jscanify {
   constructor() {}
 
@@ -14,87 +10,127 @@ export class jscanify {
    * @returns the biggest contour inside the image
    */
   findPaperContour(img) {
-    console.log('findPaperContour execution: start - src image matrix ', img);
+    let imgGray;
+    let imgBlur;
+    let imgThresh;
+    let contours;
+    let hierarchy;
 
-    let imgGray = new cv.Mat();
-    cv.cvtColor(img, imgGray, cv.COLOR_RGBA2GRAY);
+    try {
+      console.log('findPaperContour execution: start - src image matrix ', img);
 
-    console.log('findPaperContour execution: imgGray ', imgGray);
+      imgGray = new cv.Mat();
+      cv.cvtColor(img, imgGray, cv.COLOR_RGBA2GRAY);
 
-    let imgBlur = new cv.Mat();
-    cv.GaussianBlur(
-      imgGray,
-      imgBlur,
-      new cv.Size(5, 5),
-      0,
-      0,
-      cv.BORDER_DEFAULT
-    );
+      console.log('findPaperContour execution: imgGray ', imgGray);
 
-    console.log('findPaperContour execution: imgBlur ', imgBlur);
+      imgBlur = new cv.Mat();
+      cv.GaussianBlur(
+        imgGray,
+        imgBlur,
+        new cv.Size(5, 5),
+        0,
+        0,
+        cv.BORDER_DEFAULT
+      );
 
-    let imgThresh = new cv.Mat();
-    cv.threshold(imgBlur, imgThresh, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
+      console.log('findPaperContour execution: imgBlur ', imgBlur);
 
-    console.log('findPaperContour execution: imgThresh ', imgThresh);
+      imgThresh = new cv.Mat();
+      cv.threshold(
+        imgBlur,
+        imgThresh,
+        0,
+        255,
+        cv.THRESH_BINARY + cv.THRESH_OTSU
+      );
 
-    let contours = new cv.MatVector();
-    let hierarchy = new cv.Mat();
+      console.log('findPaperContour execution: imgThresh ', imgThresh);
 
-    cv.findContours(
-      imgThresh,
-      contours,
-      hierarchy,
-      cv.RETR_CCOMP,
-      cv.CHAIN_APPROX_SIMPLE
-    );
+      contours = new cv.MatVector();
+      hierarchy = new cv.Mat();
+      cv.findContours(
+        imgThresh,
+        contours,
+        hierarchy,
+        cv.RETR_CCOMP,
+        cv.CHAIN_APPROX_SIMPLE
+      );
 
-    console.log('findPaperContour execution: contours ', contours);
+      console.log('findPaperContour execution: contours ', contours);
 
-    let maxArea = 0;
-    let maxContourIndex = -1;
+      let maxArea = 0;
+      let maxContourIndex = -1;
 
-    for (let i = 0; i < contours.size(); ++i) {
-      let contourArea = cv.contourArea(contours.get(i));
-      if (contourArea > maxArea) {
-        maxArea = contourArea;
-        maxContourIndex = i;
+      for (let i = 0; i < contours.size(); ++i) {
+        let contourArea = cv.contourArea(contours.get(i));
+        if (contourArea > maxArea) {
+          maxArea = contourArea;
+          maxContourIndex = i;
+        }
       }
+
+      console.log(
+        'findPaperContour execution: maxArea, maxContourIndex ',
+        maxArea,
+        maxContourIndex
+      );
+
+      const maxContour =
+        maxContourIndex !== -1 ? contours.get(maxContourIndex) : null;
+
+      console.log('findPaperContour execution: maxContour ', maxContour);
+
+      imgGray.delete();
+      imgBlur.delete();
+      imgThresh.delete();
+      contours.delete();
+      hierarchy.delete();
+
+      imgGray = null;
+      imgBlur = null;
+      imgThresh = null;
+      contours = null;
+      hierarchy = null;
+
+      console.log(
+        'findPaperContour execution: cleaning matrixes',
+        imgGray,
+        imgBlur,
+        imgThresh,
+        contours,
+        hierarchy
+      );
+
+      return maxContour;
+    } catch (error) {
+      if (imgGray) {
+        imgGray.delete();
+        imgGray = null;
+      }
+
+      if (imgBlur) {
+        imgBlur.delete();
+        imgBlur = null;
+      }
+
+      if (imgThresh) {
+        imgThresh.delete();
+        imgThresh = null;
+      }
+
+      if (contours) {
+        contours.delete();
+        contours = null;
+      }
+
+      if (hierarchy) {
+        hierarchy.delete();
+        hierarchy = null;
+      }
+
+      throw new Error(error);
     }
-
-    console.log(
-      'findPaperContour execution: maxArea, maxContourIndex ',
-      maxArea,
-      maxContourIndex
-    );
-
-    const maxContour =
-      maxContourIndex !== -1 ? contours.get(maxContourIndex) : null;
-
-    console.log('findPaperContour execution: maxContour ', maxContour);
-
-    imgGray.delete();
-    imgBlur.delete();
-    imgThresh.delete();
-    contours.delete();
-    hierarchy.delete();
-
-    imgGray = null;
-    imgBlur = null;
-    imgThresh = null;
-    contours = null;
-    hierarchy = null;
-
-    console.log(
-      'findPaperContour execution: cleaning matrixes',
-      imgGray,
-      imgBlur,
-      imgThresh,
-      contours,
-      hierarchy
-    );
-
-    return maxContour;
   }
 
   /**
@@ -104,226 +140,174 @@ export class jscanify {
    * @returns `HTMLCanvasElement` with original image and paper highlighted
    */
   highlightPaper(image, options) {
-    console.log('highlightPaper execution: start');
+    let img;
+    let maxContour;
 
-    options = options || {};
-    options.color = options.color || 'orange';
-    options.thickness = options.thickness || 10;
-    const canvas = document.createElement('canvas');
-    console.log('highlightPaper execution: canvas ', canvas);
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    console.log('highlightPaper execution: canvas ctx ', ctx);
-    let img = cv.imread(image);
+    try {
+      console.log('highlightPaper execution: start');
 
-    console.log('highlightPaper execution: src img martrix ', img);
+      options = options || {};
+      options.color = options.color || 'orange';
+      options.thickness = options.thickness || 10;
+      const canvas = document.createElement('canvas');
+      console.log('highlightPaper execution: canvas ', canvas);
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      console.log('highlightPaper execution: canvas ctx ', ctx);
+      img = cv.imread(image);
 
-    let maxContour = this.findPaperContour(img);
-    cv.imshow(canvas, img);
+      console.log('highlightPaper execution: src img martrix ', img);
 
-    console.log('highlightPaper execution:  maxContour ', maxContour);
+      maxContour = this.findPaperContour(img);
 
-    if (maxContour) {
-      const {
-        topLeftCorner,
-        topRightCorner,
-        bottomLeftCorner,
-        bottomRightCorner,
-      } = this.getCornerPoints(maxContour, img);
+      console.log('highlightPaper execution:  maxContour ', maxContour);
+
+      if (maxContour) this.drawContourInImage(img, maxContour);
+
+      cv.imshow(canvas, img);
+
+      img.delete();
+      maxContour.delete();
+
+      img = null;
+      maxContour = null;
 
       console.log(
-        'highlightPaper execution: contour Points ',
-        topLeftCorner,
-        topRightCorner,
-        bottomLeftCorner,
-        bottomRightCorner
+        'highlightPaper execution: cleaning img and maxContour ',
+        img,
+        maxContour
       );
 
-      if (
-        topLeftCorner &&
-        topRightCorner &&
-        bottomLeftCorner &&
-        bottomRightCorner
-      ) {
-        ctx.strokeStyle = options.color;
-        ctx.lineWidth = options.thickness;
-        ctx.beginPath();
-        ctx.moveTo(...Object.values(topLeftCorner));
-        ctx.lineTo(...Object.values(topRightCorner));
-        ctx.lineTo(...Object.values(bottomRightCorner));
-        ctx.lineTo(...Object.values(bottomLeftCorner));
-        ctx.lineTo(...Object.values(topLeftCorner));
-        ctx.stroke();
-
-        console.log(
-          'highlightPaper execution: result canvas context ',
-          ctx,
-          canvas
-        );
+      return canvas;
+    } catch (error) {
+      if (img) {
+        img.delete();
+        img = null;
       }
+
+      if (maxContour) {
+        maxContour.delete();
+        maxContour = null;
+      }
+
+      console.log(
+        'highlightPaper execution: cleaning img and maxContour ',
+        img,
+        maxContour
+      );
+
+      throw new Error(error);
     }
-
-    img.delete();
-    maxContour.delete();
-
-    img = null;
-    maxContour = null;
-
-    console.log(
-      'highlightPaper execution: cleaning img and maxContour ',
-      img,
-      maxContour
-    );
-
-    return canvas;
   }
 
-  /**
-   * Extracts and undistorts the image detected within the frame.
-   * @param {*} image image to process
-   * @param {*} resultWidth desired result paper width
-   * @param {*} resultHeight desired result paper height
-   * @param {*} onComplete callback with `HTMLCanvasElement` passed - the unwarped paper
-   * @param {*} cornerPoints optional custom corner points, in case automatic corner points are incorrect
-   */
-  extractPaper(image, resultWidth, resultHeight, cornerPoints) {
+  extractPaper(image, resultWidth, resultHeight, fullPaper = false) {
     const canvas = document.createElement('canvas');
 
     let img = cv.imread(image);
 
     let maxContour = this.findPaperContour(img);
 
-    const {
-      topLeftCorner,
-      topRightCorner,
-      bottomLeftCorner,
-      bottomRightCorner,
-    } = cornerPoints || this.getCornerPoints(maxContour, img);
-    let warpedDst = new cv.Mat();
+    if (maxContour && !fullPaper) {
+      let warpedDst = new cv.Mat();
 
-    let dsize = new cv.Size(resultWidth, resultHeight);
-    let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
-      topLeftCorner.x,
-      topLeftCorner.y,
-      topRightCorner.x,
-      topRightCorner.y,
-      bottomLeftCorner.x,
-      bottomLeftCorner.y,
-      bottomRightCorner.x,
-      bottomRightCorner.y,
-    ]);
+      let dsize = new cv.Size(resultWidth, resultHeight);
+      let srcTri = this.getApproximatePolyDBContour(maxContour);
 
-    let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
-      0,
-      0,
-      resultWidth,
-      0,
-      0,
-      resultHeight,
-      resultWidth,
-      resultHeight,
-    ]);
+      let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
+        0,
+        0,
+        resultWidth,
+        0,
+        0,
+        resultHeight,
+        resultWidth,
+        resultHeight,
+      ]);
 
-    let M = cv.getPerspectiveTransform(srcTri, dstTri);
-    cv.warpPerspective(
-      img,
-      warpedDst,
-      M,
-      dsize,
-      cv.INTER_LINEAR,
-      cv.BORDER_CONSTANT,
-      new cv.Scalar()
-    );
+      let M = cv.getPerspectiveTransform(srcTri, dstTri);
+      cv.warpPerspective(
+        img,
+        warpedDst,
+        M,
+        dsize,
+        cv.INTER_LINEAR,
+        cv.BORDER_CONSTANT,
+        new cv.Scalar()
+      );
 
-    cv.imshow(canvas, warpedDst);
+      cv.imshow(canvas, warpedDst);
+
+      warpedDst.delete();
+      warpedDst = null;
+
+      maxContour.delete();
+      maxContour = null;
+
+      srcTri.delete();
+      srcTri = null;
+
+      dstTri.delete();
+      dstTri = null;
+
+      M.delete();
+      M = null;
+    } else {
+      cv.imshow(canvas, img);
+    }
 
     img.delete();
-    warpedDst.delete();
-    maxContour.delete();
-    srcTri.delete();
-    dstTri.delete();
-    M.delete();
-
     img = null;
-    warpedDst = null;
-    maxContour = null;
-    srcTri = null;
-    dstTri = null;
-    M = null;
 
     return canvas;
   }
 
-  /**
-   * Calculates the corner points of a contour.
-   * @param {*} contour contour from {@link findPaperContour}
-   * @returns object with properties `topLeftCorner`, `topRightCorner`, `bottomLeftCorner`, `bottomRightCorner`, each with `x` and `y` property
-   */
-  getCornerPoints(contour) {
-    console.log('getCornerPoints execution: start ', contour);
+  drawContourInImage(img, contour) {
+    let contoursToDraw;
+    let approxCurve;
 
-    let rect = cv.minAreaRect(contour);
-    const center = rect.center;
+    try {
+      approxCurve = this.getApproximatePolyDBContour(contour);
+      contoursToDraw = new cv.MatVector();
+      contoursToDraw.push_back(approxCurve);
+      cv.drawContours(img, contoursToDraw, 0, new cv.Scalar(0, 255, 0, 255), 2);
 
-    console.log(
-      'getCornerPoints execution: minRectArea and center ',
-      rect,
-      center
-    );
+      // Don't forget to release the memory allocated for approxCurve
+      contoursToDraw.delete();
+      approxCurve.delete();
 
-    let topLeftCorner;
-    let topLeftCornerDist = 0;
-
-    let topRightCorner;
-    let topRightCornerDist = 0;
-
-    let bottomLeftCorner;
-    let bottomLeftCornerDist = 0;
-
-    let bottomRightCorner;
-    let bottomRightCornerDist = 0;
-
-    for (let i = 0; i < contour.data32S.length; i += 2) {
-      const point = { x: contour.data32S[i], y: contour.data32S[i + 1] };
-      const dist = distance(point, center);
-      if (point.x < center.x && point.y < center.y) {
-        // top left
-        if (dist > topLeftCornerDist) {
-          topLeftCorner = point;
-          topLeftCornerDist = dist;
-        }
-      } else if (point.x > center.x && point.y < center.y) {
-        // top right
-        if (dist > topRightCornerDist) {
-          topRightCorner = point;
-          topRightCornerDist = dist;
-        }
-      } else if (point.x < center.x && point.y > center.y) {
-        // bottom left
-        if (dist > bottomLeftCornerDist) {
-          bottomLeftCorner = point;
-          bottomLeftCornerDist = dist;
-        }
-      } else if (point.x > center.x && point.y > center.y) {
-        // bottom right
-        if (dist > bottomRightCornerDist) {
-          bottomRightCorner = point;
-          bottomRightCornerDist = dist;
-        }
+      contoursToDraw = null;
+      approxCurve = null;
+    } catch (error) {
+      if (contoursToDraw) {
+        contoursToDraw.delete();
+        contoursToDraw = null;
       }
+
+      if (approxCurve) {
+        approxCurve.delete();
+        approxCurve = null;
+      }
+
+      throw new Error(error);
     }
+  }
 
-    console.log('getCornerPoints execution: contour points result ', {
-      topLeftCorner,
-      topRightCorner,
-      bottomLeftCorner,
-      bottomRightCorner,
-    });
+  getApproximatePolyDBContour(contour) {
+    let approxCurve;
 
-    return {
-      topLeftCorner,
-      topRightCorner,
-      bottomLeftCorner,
-      bottomRightCorner,
-    };
+    try {
+      const epsilon = 0.04 * cv.arcLength(contour, true); // You can adjust the epsilon value
+
+      approxCurve = new cv.Mat();
+      cv.approxPolyDP(contour, approxCurve, epsilon, true);
+
+      return approxCurve;
+    } catch (error) {
+      if (approxCurve) {
+        approxCurve.delete();
+        approxCurve = null;
+      }
+
+      throw new Error(error);
+    }
   }
 }

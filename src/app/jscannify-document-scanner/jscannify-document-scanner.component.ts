@@ -96,12 +96,17 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
 
       canvasCtx.drawImage(this.video, 0, 0);
 
-      const resultCanvas = this.scanner.highlightPaper(canvas, {
-        color: 'yellow',
-        thickness: 1.5,
-      });
+      try {
+        const resultCanvas = this.scanner.highlightPaper(canvas, {
+          color: 'yellow',
+          thickness: 1.5,
+        });
 
-      resultCtx.drawImage(resultCanvas, 0, 0);
+        resultCtx.drawImage(resultCanvas, 0, 0);
+      } catch (error) {
+        console.error(error);
+        return;
+      }
     }
 
     setTimeout(
