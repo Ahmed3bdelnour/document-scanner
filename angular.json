@@ -33,7 +33,7 @@
             "styles": ["src/styles.scss"],
             "scripts": [
               "./src/assets/js/webrtc.adapter-8.0.0.js",
-              "./src/assets/js/custom-opencv-build-test-memory/opencv.js"
+              "./src/assets/js/custom-opencv-build-2/opencv.js"
             ]
           },
           "configurations": {
@@ -99,7 +99,7 @@
             "styles": ["src/styles.scss"],
             "scripts": [
               "./src/assets/js/webrtc.adapter-8.0.0.js",
-              "./src/assets/js/custom-opencv-build-test-memory/opencv.js"
+              "./src/assets/js/custom-opencv-build-2/opencv.js"
             ]
           }
         }
