@@ -1,6 +1,5 @@
 // @ts-nocheck
-
-export class jscanify {
+export class WebScanner {
   cv: any = null;
 
   constructor(_cv: any) {
@@ -142,22 +141,15 @@ export class jscanify {
    * @param {*} options options for highlighting. Accepts `color` and `thickness` parameter
    * @returns `HTMLCanvasElement` with original image and paper highlighted
    */
-  highlightPaper(image, options) {
+  highlightPaper(capture, width, height) {
     let img;
     let maxContour;
 
     try {
       console.log('highlightPaper execution: start');
 
-      options = options || {};
-      options.color = options.color || 'orange';
-      options.thickness = options.thickness || 10;
-      const canvas = document.createElement('canvas');
-      console.log('highlightPaper execution: canvas ', canvas);
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      console.log('highlightPaper execution: canvas ctx ', ctx);
-
-      img = this.cv.imread(image);
+      img = new this.cv.Mat(height, width, this.cv.CV_8UC4);
+      capture.read(img);
 
       console.log('highlightPaper execution: src img martrix ', img);
 
@@ -171,7 +163,7 @@ export class jscanify {
         maxContour = null;
       }
 
-      this.cv.imshow(canvas, img);
+      this.cv.imshow('result', img);
 
       img.delete();
       img = null;
@@ -181,8 +173,6 @@ export class jscanify {
         img,
         maxContour
       );
-
-      return canvas;
     } catch (error) {
       if (img) {
         img.delete();
@@ -281,11 +271,10 @@ export class jscanify {
         img,
         contoursToDraw,
         0,
-        new this.cv.Scalar(0, 255, 0, 255),
+        new cv.Scalar(255, 255, 0, 255),
         2
       );
 
-      // Don't forget to release the memory allocated for approxCurve
       contoursToDraw.delete();
       approxCurve.delete();
 

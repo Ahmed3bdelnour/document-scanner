@@ -6,7 +6,7 @@ import {
   Output,
 } from '@angular/core';
 
-declare const cv: any;
+declare let cv: any;
 
 enum FacingMode {
   user = 'user',
@@ -33,7 +33,10 @@ export class DocumentScannerComponent implements AfterViewInit, OnDestroy {
   constructor() {}
 
   ngAfterViewInit(): void {
-    this.startScanning();
+    cv.then((_cv: any) => {
+      cv = _cv;
+      this.startScanning();
+    });
   }
 
   handleFileUpload(event: Event) {

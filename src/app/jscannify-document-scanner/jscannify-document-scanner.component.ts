@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription, fromEvent, take } from 'rxjs';
-import { jscanify } from './model';
+import { WebScanner } from './model';
 
-declare var cv: any;
+declare let cv: any;
 
 @Component({
   selector: 'app-jscannify-document-scanner',
@@ -13,6 +13,7 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   // @ts-ignore
   video: HTMLVideoElement;
   stream: MediaStream | null = null;
+  capture: any = null;
   frameRate = 30;
   scanner: any;
 
@@ -25,9 +26,12 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   }
 
   async InitScanner() {
-    this.scanner = new jscanify(await cv);
+    cv = await cv;
+    this.scanner = new WebScanner(cv);
 
     this.video = document.getElementById('video')! as HTMLVideoElement;
+    this.video.width = screen.availWidth;
+    this.video.height = screen.availHeight;
 
     // TODO: handle Idle user
 
@@ -69,6 +73,8 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
       .getUserMedia({
         video: {
           facingMode: 'environment',
+          width: { ideal: 640 },
+          height: { ideal: 480 },
           frameRate: { exact: this.frameRate },
         },
         audio: false,
@@ -81,6 +87,7 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
           .pipe(take(1))
           .subscribe(() => {
             this.video.play();
+            this.capture = new cv.VideoCapture(this.video);
           });
       })
       .catch((error) => console.log('Failed to open camera: ' + error));
@@ -93,28 +100,15 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
 
     const startProcessingTime = Date.now();
 
-    const canvas = document.getElementById('canvas')! as HTMLCanvasElement;
-    const result = document.getElementById('result')! as HTMLCanvasElement;
-
-    if (this.video && canvas && result) {
-      const canvasCtx = canvas.getContext('2d', { willReadFrequently: true })!;
-      const resultCtx = result.getContext('2d', { willReadFrequently: true })!;
-
-      canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-      canvasCtx.drawImage(this.video, 0, 0);
-
-      try {
-        const resultCanvas = this.scanner.highlightPaper(canvas, {
-          color: 'yellow',
-          thickness: 1.5,
-        });
-
-        resultCtx.clearRect(0, 0, result.width, result.height);
-        resultCtx.drawImage(resultCanvas, 0, 0);
-      } catch (error) {
-        console.error(error);
-        return;
-      }
+    try {
+      this.scanner.highlightPaper(
+        this.capture,
+        this.video.width,
+        this.video.height
+      );
+    } catch (error) {
+      console.error(error);
+      return;
     }
 
     setTimeout(
@@ -124,19 +118,22 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   };
 
   stopCamera = () => {
-    if (this.video) {
-      const stream = this.video.srcObject as MediaStream;
-      this.video.pause();
-      this.video.srcObject = null;
+    if (!this.video) return;
 
-      if (stream) {
-        stream.getVideoTracks()[0].stop();
-      }
-    }
+    const stream = this.video.srcObject as MediaStream;
+    this.video.pause();
+    this.video.srcObject = null;
+
+    if (!stream) return;
+    stream.getVideoTracks()[0].stop();
   };
 
   ngOnDestroy(): void {
     this.stopCamera();
     this.subscriptions.unsubscribe();
+    if (this.capture) {
+      this.capture.release();
+      this.capture = null;
+    }
   }
 }
