@@ -73,8 +73,6 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
       .getUserMedia({
         video: {
           facingMode: 'environment',
-          width: { ideal: 640 },
-          height: { ideal: 480 },
           frameRate: { exact: this.frameRate },
         },
         audio: false,
