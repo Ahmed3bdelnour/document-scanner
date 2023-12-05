@@ -2,6 +2,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription, fromEvent, take } from 'rxjs';
 import { jscanify } from './model';
 
+declare var cv: any;
+
 @Component({
   selector: 'app-jscannify-document-scanner',
   templateUrl: './jscannify-document-scanner.component.html',
@@ -12,15 +14,19 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   video: HTMLVideoElement;
   stream: MediaStream | null = null;
   frameRate = 30;
-  scanner = new jscanify();
+  scanner: any;
 
   subscriptions = new Subscription();
-
-  constructor() {}
 
   ngOnInit() {}
 
   ngAfterViewInit(): void {
+    this.InitScanner();
+  }
+
+  async InitScanner() {
+    this.scanner = new jscanify(await cv);
+
     this.video = document.getElementById('video')! as HTMLVideoElement;
 
     // TODO: handle Idle user
@@ -94,6 +100,7 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
       const canvasCtx = canvas.getContext('2d', { willReadFrequently: true })!;
       const resultCtx = result.getContext('2d', { willReadFrequently: true })!;
 
+      canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
       canvasCtx.drawImage(this.video, 0, 0);
 
       try {
@@ -102,6 +109,7 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
           thickness: 1.5,
         });
 
+        resultCtx.clearRect(0, 0, result.width, result.height);
         resultCtx.drawImage(resultCanvas, 0, 0);
       } catch (error) {
         console.error(error);

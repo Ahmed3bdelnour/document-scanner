@@ -1,12 +1,15 @@
 // @ts-nocheck
-declare var cv: any;
 
 export class jscanify {
-  constructor() {}
+  cv: any = null;
+
+  constructor(_cv: any) {
+    this.cv = _cv;
+  }
 
   /**
    * Finds the contour of the paper within the image
-   * @param {*} img image to process (cv.Mat)
+   * @param {*} img image to process (this.cv.Mat)
    * @returns the biggest contour inside the image
    */
   findPaperContour(img) {
@@ -19,42 +22,42 @@ export class jscanify {
     try {
       console.log('findPaperContour execution: start - src image matrix ', img);
 
-      imgGray = new cv.Mat();
-      cv.cvtColor(img, imgGray, cv.COLOR_RGBA2GRAY);
+      imgGray = new this.cv.Mat();
+      this.cv.cvtColor(img, imgGray, this.cv.COLOR_RGBA2GRAY);
 
       console.log('findPaperContour execution: imgGray ', imgGray);
 
-      imgBlur = new cv.Mat();
-      cv.GaussianBlur(
+      imgBlur = new this.cv.Mat();
+      this.cv.GaussianBlur(
         imgGray,
         imgBlur,
-        new cv.Size(5, 5),
+        new this.cv.Size(5, 5),
         0,
         0,
-        cv.BORDER_DEFAULT
+        this.cv.BORDER_DEFAULT
       );
 
       console.log('findPaperContour execution: imgBlur ', imgBlur);
 
-      imgThresh = new cv.Mat();
-      cv.threshold(
+      imgThresh = new this.cv.Mat();
+      this.cv.threshold(
         imgBlur,
         imgThresh,
         0,
         255,
-        cv.THRESH_BINARY + cv.THRESH_OTSU
+        this.cv.THRESH_BINARY + this.cv.THRESH_OTSU
       );
 
       console.log('findPaperContour execution: imgThresh ', imgThresh);
 
-      contours = new cv.MatVector();
-      hierarchy = new cv.Mat();
-      cv.findContours(
+      contours = new this.cv.MatVector();
+      hierarchy = new this.cv.Mat();
+      this.cv.findContours(
         imgThresh,
         contours,
         hierarchy,
-        cv.RETR_CCOMP,
-        cv.CHAIN_APPROX_SIMPLE
+        this.cv.RETR_CCOMP,
+        this.cv.CHAIN_APPROX_SIMPLE
       );
 
       console.log('findPaperContour execution: contours ', contours);
@@ -63,7 +66,7 @@ export class jscanify {
       let maxContourIndex = -1;
 
       for (let i = 0; i < contours.size(); ++i) {
-        let contourArea = cv.contourArea(contours.get(i));
+        let contourArea = this.cv.contourArea(contours.get(i));
         if (contourArea > maxArea) {
           maxArea = contourArea;
           maxContourIndex = i;
@@ -153,7 +156,8 @@ export class jscanify {
       console.log('highlightPaper execution: canvas ', canvas);
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
       console.log('highlightPaper execution: canvas ctx ', ctx);
-      img = cv.imread(image);
+
+      img = this.cv.imread(image);
 
       console.log('highlightPaper execution: src img martrix ', img);
 
@@ -161,15 +165,16 @@ export class jscanify {
 
       console.log('highlightPaper execution:  maxContour ', maxContour);
 
-      if (maxContour) this.drawContourInImage(img, maxContour);
+      if (maxContour) {
+        this.drawContourInImage(img, maxContour);
+        maxContour.delete();
+        maxContour = null;
+      }
 
-      cv.imshow(canvas, img);
+      this.cv.imshow(canvas, img);
 
       img.delete();
-      maxContour.delete();
-
       img = null;
-      maxContour = null;
 
       console.log(
         'highlightPaper execution: cleaning img and maxContour ',
@@ -202,56 +207,60 @@ export class jscanify {
   extractPaper(image, resultWidth, resultHeight, fullPaper = false) {
     const canvas = document.createElement('canvas');
 
-    let img = cv.imread(image);
+    let img = this.cv.imread(image);
 
-    let maxContour = this.findPaperContour(img);
+    if (!fullPaper) {
+      let maxContour = this.findPaperContour(img);
 
-    if (maxContour && !fullPaper) {
-      let warpedDst = new cv.Mat();
+      if (maxContour) {
+        let warpedDst = new this.cv.Mat();
 
-      let dsize = new cv.Size(resultWidth, resultHeight);
-      let srcTri = this.getApproximatePolyDBContour(maxContour);
+        let dsize = new this.cv.Size(resultWidth, resultHeight);
+        let srcTri = this.getApproximatePolyDBContour(maxContour);
 
-      let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
-        0,
-        0,
-        resultWidth,
-        0,
-        0,
-        resultHeight,
-        resultWidth,
-        resultHeight,
-      ]);
+        let dstTri = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
+          0,
+          0,
+          resultWidth,
+          0,
+          0,
+          resultHeight,
+          resultWidth,
+          resultHeight,
+        ]);
 
-      let M = cv.getPerspectiveTransform(srcTri, dstTri);
-      cv.warpPerspective(
-        img,
-        warpedDst,
-        M,
-        dsize,
-        cv.INTER_LINEAR,
-        cv.BORDER_CONSTANT,
-        new cv.Scalar()
-      );
+        let M = this.cv.getPerspectiveTransform(srcTri, dstTri);
+        this.cv.warpPerspective(
+          img,
+          warpedDst,
+          M,
+          dsize,
+          this.cv.INTER_LINEAR,
+          this.cv.BORDER_CONSTANT,
+          new this.cv.Scalar()
+        );
 
-      cv.imshow(canvas, warpedDst);
+        this.cv.imshow(canvas, warpedDst);
 
-      warpedDst.delete();
-      warpedDst = null;
+        warpedDst.delete();
+        warpedDst = null;
 
-      maxContour.delete();
-      maxContour = null;
+        maxContour.delete();
+        maxContour = null;
 
-      srcTri.delete();
-      srcTri = null;
+        srcTri.delete();
+        srcTri = null;
 
-      dstTri.delete();
-      dstTri = null;
+        dstTri.delete();
+        dstTri = null;
 
-      M.delete();
-      M = null;
+        M.delete();
+        M = null;
+      } else {
+        this.cv.imshow(canvas, img);
+      }
     } else {
-      cv.imshow(canvas, img);
+      this.cv.imshow(canvas, img);
     }
 
     img.delete();
@@ -266,9 +275,15 @@ export class jscanify {
 
     try {
       approxCurve = this.getApproximatePolyDBContour(contour);
-      contoursToDraw = new cv.MatVector();
+      contoursToDraw = new this.cv.MatVector();
       contoursToDraw.push_back(approxCurve);
-      cv.drawContours(img, contoursToDraw, 0, new cv.Scalar(0, 255, 0, 255), 2);
+      this.cv.drawContours(
+        img,
+        contoursToDraw,
+        0,
+        new this.cv.Scalar(0, 255, 0, 255),
+        2
+      );
 
       // Don't forget to release the memory allocated for approxCurve
       contoursToDraw.delete();
@@ -295,10 +310,10 @@ export class jscanify {
     let approxCurve;
 
     try {
-      const epsilon = 0.04 * cv.arcLength(contour, true); // You can adjust the epsilon value
+      const epsilon = 0.04 * this.cv.arcLength(contour, true); // You can adjust the epsilon value
 
-      approxCurve = new cv.Mat();
-      cv.approxPolyDP(contour, approxCurve, epsilon, true);
+      approxCurve = new this.cv.Mat();
+      this.cv.approxPolyDP(contour, approxCurve, epsilon, true);
 
       return approxCurve;
     } catch (error) {
