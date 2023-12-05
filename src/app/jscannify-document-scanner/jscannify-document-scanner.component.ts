@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription, fromEvent, take } from 'rxjs';
 import { WebScanner } from './model';
+import { loadOpenCV } from './opencv-loader';
 
 declare let cv: any;
 
@@ -22,7 +23,18 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   ngOnInit() {}
 
   ngAfterViewInit(): void {
-    this.InitScanner();
+    // show loading message...
+    loadOpenCV(
+      { asm: './../../assets/js/custom-opencv-build-2/opencv.js' },
+      () => {
+        this.InitScanner();
+        // close loading message...
+      },
+      () => {
+        alert('Failed to load opencv.js');
+        // close loading message...
+      }
+    ).catch((error) => alert(error)); // close loading message...
   }
 
   async InitScanner() {
@@ -88,7 +100,7 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
             this.capture = new cv.VideoCapture(this.video);
           });
       })
-      .catch((error) => console.log('Failed to open camera: ' + error));
+      .catch((error) => alert('Failed to open camera: ' + error));
   };
 
   processVideo = () => {
@@ -129,9 +141,6 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.stopCamera();
     this.subscriptions.unsubscribe();
-    if (this.capture) {
-      this.capture.release();
-      this.capture = null;
-    }
+    if (this.capture) this.capture = null;
   }
 }
