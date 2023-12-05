@@ -126,8 +126,7 @@ export async function loadOpenCV(
     onErrorCallback();
   });
   script.src = OPENCV_URL;
-  let node = document.getElementsByTagName('script')[0];
-  if (node.src != OPENCV_URL) {
-    node.parentNode!.insertBefore(script, node);
-  }
+  const opencvPlaceholder = document.getElementById('opencv-placeholder');
+  opencvPlaceholder?.parentNode!.insertBefore(script, opencvPlaceholder);
+  opencvPlaceholder?.remove();
 }

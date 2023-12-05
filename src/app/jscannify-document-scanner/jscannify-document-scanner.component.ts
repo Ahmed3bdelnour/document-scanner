@@ -25,7 +25,9 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   ngAfterViewInit(): void {
     // show loading message...
     loadOpenCV(
-      { asm: './../../assets/js/custom-opencv-build-2/opencv.js' },
+      {
+        asm: 'https://ahmed3bdelnour.github.io/document-scanner/assets/js/custom-opencv-build-2/opencv.js',
+      },
       () => {
         this.InitScanner();
         // close loading message...
