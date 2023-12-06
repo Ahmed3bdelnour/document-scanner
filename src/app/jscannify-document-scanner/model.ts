@@ -83,17 +83,11 @@ export class WebScanner {
 
       console.log('findPaperContour execution: maxContour ', maxContour);
 
-      imgGray.delete();
-      imgBlur.delete();
-      imgThresh.delete();
-      contours.delete();
-      hierarchy.delete();
-
-      imgGray = null;
-      imgBlur = null;
-      imgThresh = null;
-      contours = null;
-      hierarchy = null;
+      this.deleteCVObject(imgGray);
+      this.deleteCVObject(imgBlur);
+      this.deleteCVObject(imgThresh);
+      this.deleteCVObject(contours);
+      this.deleteCVObject(hierarchy);
 
       console.log(
         'findPaperContour execution: cleaning matrixes',
@@ -106,30 +100,11 @@ export class WebScanner {
 
       return maxContour;
     } catch (error) {
-      if (imgGray) {
-        imgGray.delete();
-        imgGray = null;
-      }
-
-      if (imgBlur) {
-        imgBlur.delete();
-        imgBlur = null;
-      }
-
-      if (imgThresh) {
-        imgThresh.delete();
-        imgThresh = null;
-      }
-
-      if (contours) {
-        contours.delete();
-        contours = null;
-      }
-
-      if (hierarchy) {
-        hierarchy.delete();
-        hierarchy = null;
-      }
+      this.deleteCVObject(imgGray);
+      this.deleteCVObject(imgBlur);
+      this.deleteCVObject(imgThresh);
+      this.deleteCVObject(contours);
+      this.deleteCVObject(hierarchy);
 
       throw new Error(error);
     }
@@ -159,14 +134,12 @@ export class WebScanner {
 
       if (maxContour) {
         this.drawContourInImage(img, maxContour);
-        maxContour.delete();
-        maxContour = null;
+        this.deleteCVObject(maxContour);
       }
 
       this.cv.imshow('result', img);
 
-      img.delete();
-      img = null;
+      this.deleteCVObject(img);
 
       console.log(
         'highlightPaper execution: cleaning img and maxContour ',
@@ -174,15 +147,8 @@ export class WebScanner {
         maxContour
       );
     } catch (error) {
-      if (img) {
-        img.delete();
-        img = null;
-      }
-
-      if (maxContour) {
-        maxContour.delete();
-        maxContour = null;
-      }
+      this.deleteCVObject(img);
+      this.deleteCVObject(maxContour);
 
       console.log(
         'highlightPaper execution: cleaning img and maxContour ',
@@ -232,20 +198,11 @@ export class WebScanner {
 
         this.cv.imshow(canvas, warpedDst);
 
-        warpedDst.delete();
-        warpedDst = null;
-
-        maxContour.delete();
-        maxContour = null;
-
-        srcTri.delete();
-        srcTri = null;
-
-        dstTri.delete();
-        dstTri = null;
-
-        M.delete();
-        M = null;
+        this.deleteCVObject(warpedDst);
+        this.deleteCVObject(maxContour);
+        this.deleteCVObject(srcTri);
+        this.deleteCVObject(dstTri);
+        this.deleteCVObject(m);
       } else {
         this.cv.imshow(canvas, img);
       }
@@ -253,8 +210,7 @@ export class WebScanner {
       this.cv.imshow(canvas, img);
     }
 
-    img.delete();
-    img = null;
+    this.deleteCVObject(img);
 
     return canvas;
   }
@@ -275,21 +231,11 @@ export class WebScanner {
         2
       );
 
-      contoursToDraw.delete();
-      approxCurve.delete();
-
-      contoursToDraw = null;
-      approxCurve = null;
+      this.deleteCVObject(contoursToDraw);
+      this.deleteCVObject(approxCurve);
     } catch (error) {
-      if (contoursToDraw) {
-        contoursToDraw.delete();
-        contoursToDraw = null;
-      }
-
-      if (approxCurve) {
-        approxCurve.delete();
-        approxCurve = null;
-      }
+      this.deleteCVObject(contoursToDraw);
+      this.deleteCVObject(approxCurve);
 
       throw new Error(error);
     }
@@ -306,12 +252,18 @@ export class WebScanner {
 
       return approxCurve;
     } catch (error) {
-      if (approxCurve) {
-        approxCurve.delete();
-        approxCurve = null;
-      }
+      this.deleteCVObject(approxCurve);
 
       throw new Error(error);
+    }
+  }
+
+  deleteCVObject(matrix) {
+    try {
+      if (matrix.empty()) return;
+      matrix.delete();
+    } catch (error) {
+      console.log('Matrix already deleted before: ', error.message);
     }
   }
 }
