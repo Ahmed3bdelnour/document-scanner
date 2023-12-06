@@ -1,4 +1,3 @@
-// @ts-nocheck
 export class WebScanner {
   cv: any = null;
 
@@ -6,12 +5,7 @@ export class WebScanner {
     this.cv = _cv;
   }
 
-  /**
-   * Finds the contour of the paper within the image
-   * @param {*} img image to process (this.cv.Mat)
-   * @returns the biggest contour inside the image
-   */
-  findPaperContour(img) {
+  findPaperContour(img: any, contour: any) {
     let imgGray;
     let imgBlur;
     let imgThresh;
@@ -78,10 +72,9 @@ export class WebScanner {
         maxContourIndex
       );
 
-      const maxContour =
-        maxContourIndex !== -1 ? contours.get(maxContourIndex) : null;
+      contour = maxContourIndex !== -1 ? contours.get(maxContourIndex) : null;
 
-      console.log('findPaperContour execution: maxContour ', maxContour);
+      console.log('findPaperContour execution: maxContour ', contour);
 
       this.deleteCVObject(imgGray);
       this.deleteCVObject(imgBlur);
@@ -97,9 +90,7 @@ export class WebScanner {
         contours,
         hierarchy
       );
-
-      return maxContour;
-    } catch (error) {
+    } catch (error: any) {
       this.deleteCVObject(imgGray);
       this.deleteCVObject(imgBlur);
       this.deleteCVObject(imgThresh);
@@ -110,13 +101,7 @@ export class WebScanner {
     }
   }
 
-  /**
-   * Highlights the paper detected inside the image.
-   * @param {*} image image to process
-   * @param {*} options options for highlighting. Accepts `color` and `thickness` parameter
-   * @returns `HTMLCanvasElement` with original image and paper highlighted
-   */
-  highlightPaper(capture, width, height) {
+  highlightPaper(capture: any, width: any, height: any) {
     let img;
     let maxContour;
 
@@ -128,7 +113,7 @@ export class WebScanner {
 
       console.log('highlightPaper execution: src img martrix ', img);
 
-      maxContour = this.findPaperContour(img);
+      this.findPaperContour(img, maxContour);
 
       console.log('highlightPaper execution:  maxContour ', maxContour);
 
@@ -146,7 +131,7 @@ export class WebScanner {
         img,
         maxContour
       );
-    } catch (error) {
+    } catch (error: any) {
       this.deleteCVObject(img);
       this.deleteCVObject(maxContour);
 
@@ -160,19 +145,26 @@ export class WebScanner {
     }
   }
 
-  extractPaper(image, resultWidth, resultHeight, fullPaper = false) {
+  extractPaper(
+    image: any,
+    resultWidth: any,
+    resultHeight: any,
+    fullPaper = false
+  ) {
     const canvas = document.createElement('canvas');
 
     let img = this.cv.imread(image);
 
     if (!fullPaper) {
-      let maxContour = this.findPaperContour(img);
+      let maxContour;
+      this.findPaperContour(img, maxContour);
 
       if (maxContour) {
         let warpedDst = new this.cv.Mat();
 
         let dsize = new this.cv.Size(resultWidth, resultHeight);
-        let srcTri = this.getApproximatePolyDBContour(maxContour);
+        let srcTri = new this.cv.Mat();
+        this.getApproximatePolyDBContour(maxContour, srcTri);
 
         let dstTri = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
           0,
@@ -202,7 +194,7 @@ export class WebScanner {
         this.deleteCVObject(maxContour);
         this.deleteCVObject(srcTri);
         this.deleteCVObject(dstTri);
-        this.deleteCVObject(m);
+        this.deleteCVObject(M);
       } else {
         this.cv.imshow(canvas, img);
       }
@@ -215,25 +207,26 @@ export class WebScanner {
     return canvas;
   }
 
-  drawContourInImage(img, contour) {
+  drawContourInImage(img: any, contour: any) {
     let contoursToDraw;
     let approxCurve;
 
     try {
-      approxCurve = this.getApproximatePolyDBContour(contour);
+      approxCurve = new this.cv.Mat();
+      this.getApproximatePolyDBContour(contour, approxCurve);
       contoursToDraw = new this.cv.MatVector();
       contoursToDraw.push_back(approxCurve);
       this.cv.drawContours(
         img,
         contoursToDraw,
         0,
-        new cv.Scalar(255, 255, 0, 255),
+        new this.cv.Scalar(255, 255, 0, 255),
         2
       );
 
       this.deleteCVObject(contoursToDraw);
       this.deleteCVObject(approxCurve);
-    } catch (error) {
+    } catch (error: any) {
       this.deleteCVObject(contoursToDraw);
       this.deleteCVObject(approxCurve);
 
@@ -241,24 +234,12 @@ export class WebScanner {
     }
   }
 
-  getApproximatePolyDBContour(contour) {
-    let approxCurve;
-
-    try {
-      const epsilon = 0.04 * this.cv.arcLength(contour, true); // You can adjust the epsilon value
-
-      approxCurve = new this.cv.Mat();
-      this.cv.approxPolyDP(contour, approxCurve, epsilon, true);
-
-      return approxCurve;
-    } catch (error) {
-      this.deleteCVObject(approxCurve);
-
-      throw new Error(error);
-    }
+  getApproximatePolyDBContour(contour: any, approximateCurve: any) {
+    const epsilon = 0.04 * this.cv.arcLength(contour, true); // adjust the epsilon value as needed
+    this.cv.approxPolyDP(contour, approximateCurve, epsilon, true);
   }
 
-  deleteCVObject(matrix) {
+  deleteCVObject(matrix: any) {
     if (!matrix || matrix._deleted) return;
     matrix.delete();
     matrix._deleted = true;
