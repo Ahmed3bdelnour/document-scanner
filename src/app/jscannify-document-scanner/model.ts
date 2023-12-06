@@ -259,11 +259,8 @@ export class WebScanner {
   }
 
   deleteCVObject(matrix) {
-    try {
-      if (matrix.empty()) return;
-      matrix.delete();
-    } catch (error) {
-      console.log('Matrix already deleted before: ', error.message);
-    }
+    if (!matrix || matrix._deleted) return;
+    matrix.delete();
+    matrix._deleted = true;
   }
 }
