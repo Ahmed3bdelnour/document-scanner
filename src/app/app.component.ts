@@ -9,7 +9,7 @@ export class AppComponent {
   scannedDocumentURL = '';
   showDocumentScanner = false;
 
-  handleScannedDocument(scannedDocumentURL: string) {
+  handleCapturedDocument(scannedDocumentURL: string) {
     this.scannedDocumentURL = scannedDocumentURL;
   }
 

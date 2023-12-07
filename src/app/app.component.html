@@ -2,17 +2,23 @@
   SCAN
 </button>
 
-<!-- <div>
-  <img *ngIf="false" [src]="scannedDocumentURL" />
-</div>-->
+<div>
+  <img
+    *ngIf="scannedDocumentURL"
+    [src]="scannedDocumentURL"
+    alt="scanned document"
+  />
+</div>
 
 <!-- <app-document-scanner
   *ngIf="showDocumentScanner"
-  (onScan)="handleScannedDocument($event)"
+  (onCapture)="handleScannedDocument($event)"
   (onCancel)="handleCancelScanning()"
   (onClose)="showDocumentScanner = false"
 ></app-document-scanner> -->
 
 <app-jscannify-document-scanner
   *ngIf="showDocumentScanner"
+  (onClose)="showDocumentScanner = false"
+  (onCapture)="handleCapturedDocument($event)"
 ></app-jscannify-document-scanner>

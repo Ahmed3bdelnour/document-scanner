@@ -1,8 +1,26 @@
+export enum ScanResult {
+  NoDocument = 0,
+  NotReadyDocument = 1,
+  ReadyDocument = 2,
+}
+
 export class WebScanner {
   cv: any = null;
 
   constructor(_cv: any) {
     this.cv = _cv;
+  }
+
+  renderOriginalVideo(capture: any, width: any, height: any) {
+    let img = new this.cv.Mat(height, width, this.cv.CV_8UC4);
+    try {
+      capture.read(img);
+      this.cv.imshow('result', img);
+      this.deleteCVObject(img);
+    } catch (error: any) {
+      this.deleteCVObject(img);
+      throw new Error(error);
+    }
   }
 
   highlightPaper(capture: any, width: any, height: any) {
@@ -12,10 +30,35 @@ export class WebScanner {
     try {
       capture.read(img);
       const contourExists = this.findPaperContour(img, maxContour);
-      if (contourExists) this.drawContourInImage(img, maxContour);
+
+      let scanResult = ScanResult.NoDocument;
+
+      if (contourExists) {
+        const points = this.getContourCornerPoints(maxContour);
+        this.drawContourInImage(img, points);
+
+        const hasFourPoints =
+          points.topLeft &&
+          points.topRight &&
+          points.bottomLeft &&
+          points.bottomRight;
+
+        const smallContour =
+          hasFourPoints && this.cv.boundingRect(maxContour).width < 0.9 * width;
+
+        if (smallContour) scanResult = ScanResult.NotReadyDocument;
+
+        const readyContour =
+          hasFourPoints &&
+          this.cv.boundingRect(maxContour).width >= 0.9 * width;
+        if (readyContour) scanResult = ScanResult.ReadyDocument;
+      }
+
       this.deleteCVObject(maxContour);
       this.cv.imshow('result', img);
       this.deleteCVObject(img);
+
+      return scanResult;
     } catch (error: any) {
       this.deleteCVObject(img);
       this.deleteCVObject(maxContour);
@@ -23,65 +66,198 @@ export class WebScanner {
     }
   }
 
+  // extractPaper(
+  //   capture: any,
+  //   fullWidth: any,
+  //   fullHeight: any,
+  //   resultWidth: any,
+  //   resultHeight: any,
+  //   fullPaper = false
+  // ) {
+  //   const canvas = document.createElement('canvas');
+
+  //   let img = new this.cv.Mat(fullHeight, fullWidth, this.cv.CV_8UC4);
+  //   capture.read(img);
+
+  //   if (!fullPaper) {
+  //     let maxContour = new this.cv.Mat();
+  //     const contourExists = this.findPaperContour(img, maxContour);
+
+  //     if (contourExists) {
+  //       const points = this.getContourCornerPoints(maxContour);
+  //       const hasFourPoints =
+  //         points.topLeft &&
+  //         points.topRight &&
+  //         points.bottomLeft &&
+  //         points.bottomRight;
+
+  //       if (hasFourPoints) {
+  //         let warpedDst = new this.cv.Mat();
+
+  //         let dsize = new this.cv.Size(resultWidth, resultHeight);
+  //         let srcTri = new this.cv.Mat();
+  //         this.getApproximatePolyDBContour(maxContour, srcTri);
+
+  //         let dstTri = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
+  //           0,
+  //           0,
+  //           resultWidth,
+  //           0,
+  //           0,
+  //           resultHeight,
+  //           resultWidth,
+  //           resultHeight,
+  //         ]);
+
+  //         let M = this.cv.getPerspectiveTransform(srcTri, dstTri);
+  //         this.cv.warpPerspective(
+  //           img,
+  //           warpedDst,
+  //           M,
+  //           dsize,
+  //           this.cv.INTER_LINEAR,
+  //           this.cv.BORDER_CONSTANT,
+  //           new this.cv.Scalar()
+  //         );
+
+  //         this.cv.imshow(canvas, warpedDst);
+
+  //         this.deleteCVObject(warpedDst);
+  //         this.deleteCVObject(srcTri);
+  //         this.deleteCVObject(dstTri);
+  //         this.deleteCVObject(M); // delete is not needed?
+  //       } else {
+  //         this.cv.imshow(canvas, img);
+  //       }
+  //     } else {
+  //       this.cv.imshow(canvas, img);
+  //     }
+
+  //     this.deleteCVObject(maxContour);
+  //   } else {
+  //     this.cv.imshow(canvas, img);
+  //   }
+
+  //   this.deleteCVObject(img);
+
+  //   return canvas;
+  // }
+
   extractPaper(
-    image: any,
-    resultWidth: any,
-    resultHeight: any,
-    fullPaper = false
+    capture: any,
+    width: any,
+    height: any,
+    extractFullImage: boolean
   ) {
-    const canvas = document.createElement('canvas');
+    let src = new this.cv.Mat(height, width, this.cv.CV_8UC4);
+    capture.read(src);
 
-    let img = this.cv.imread(image);
+    let dst = new this.cv.Mat(height, width, this.cv.CV_8UC4);
 
-    if (!fullPaper) {
-      let maxContour = new this.cv.Mat();
-      const contourExists = this.findPaperContour(img, maxContour);
+    let imageWidth = src.cols;
+    let imageHeight = src.rows;
 
-      if (contourExists) {
-        let warpedDst = new this.cv.Mat();
+    let topLeftCorner: any;
+    let topRightCorner: any;
+    let bottomLeftCorner: any;
+    let bottomRightCorner: any;
+    let resultWidth = 0;
+    let resultHeight = 0;
 
-        let dsize = new this.cv.Size(resultWidth, resultHeight);
-        let srcTri = new this.cv.Mat();
-        this.getApproximatePolyDBContour(maxContour, srcTri);
+    if (extractFullImage) {
+      topLeftCorner = { x: 0, y: 0 };
+      topRightCorner = { x: imageWidth, y: 0 };
+      bottomLeftCorner = { x: 0, y: imageHeight };
+      bottomRightCorner = { x: imageWidth, y: imageHeight };
+      resultWidth = imageWidth;
+      resultHeight = imageHeight;
+    } else {
+      let contour = new this.cv.Mat();
+      const contourExists = this.findPaperContour(src, contour);
 
-        let dstTri = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
-          0,
-          0,
-          resultWidth,
-          0,
-          0,
-          resultHeight,
-          resultWidth,
-          resultHeight,
-        ]);
-
-        let M = this.cv.getPerspectiveTransform(srcTri, dstTri);
-        this.cv.warpPerspective(
-          img,
-          warpedDst,
-          M,
-          dsize,
-          this.cv.INTER_LINEAR,
-          this.cv.BORDER_CONSTANT,
-          new this.cv.Scalar()
-        );
-
-        this.cv.imshow(canvas, warpedDst);
-
-        this.deleteCVObject(warpedDst);
-        this.deleteCVObject(srcTri);
-        this.deleteCVObject(dstTri);
-        this.deleteCVObject(M); // delete is not needed?
-      } else {
-        this.cv.imshow(canvas, img);
+      if (!contourExists) {
+        topLeftCorner = { x: 0, y: 0 };
+        topRightCorner = { x: imageWidth, y: 0 };
+        bottomLeftCorner = { x: 0, y: imageHeight };
+        bottomRightCorner = { x: imageWidth, y: imageHeight };
+        resultWidth = imageWidth;
+        resultHeight = imageHeight;
       }
 
-      this.deleteCVObject(maxContour);
-    } else {
-      this.cv.imshow(canvas, img);
+      const contourPoints = this.getContourCornerPoints(contour);
+
+      if (
+        !contourPoints.topLeft ||
+        !contourPoints.topRight ||
+        !contourPoints.bottomLeft ||
+        !contourPoints.bottomRight
+      ) {
+        topLeftCorner = { x: 0, y: 0 };
+        topRightCorner = { x: imageWidth, y: 0 };
+        bottomLeftCorner = { x: 0, y: imageHeight };
+        bottomRightCorner = { x: imageWidth, y: imageHeight };
+        resultWidth = imageWidth;
+        resultHeight = imageHeight;
+      } else {
+        topLeftCorner = contourPoints.topLeft;
+        topRightCorner = contourPoints.topRight;
+        bottomLeftCorner = contourPoints.bottomLeft;
+        bottomRightCorner = contourPoints.bottomRight;
+
+        const contourRect = this.cv.boundingRect(contour);
+        resultWidth = contourRect.width;
+        resultHeight = contourRect.height;
+      }
+
+      contour?.delete();
+      contour = null;
     }
 
-    this.deleteCVObject(img);
+    let dsize = new this.cv.Size(resultWidth, resultHeight);
+    let srcTri = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
+      topLeftCorner.x,
+      topLeftCorner.y,
+      topRightCorner.x,
+      topRightCorner.y,
+      bottomLeftCorner.x,
+      bottomLeftCorner.y,
+      bottomRightCorner.x,
+      bottomRightCorner.y,
+    ]);
+
+    let dstTri = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
+      0,
+      0,
+      resultWidth,
+      0,
+      0,
+      resultHeight,
+      resultWidth,
+      resultHeight,
+    ]);
+
+    let M = this.cv.getPerspectiveTransform(srcTri, dstTri);
+    this.cv.warpPerspective(
+      src,
+      dst,
+      M,
+      dsize,
+      this.cv.INTER_LINEAR,
+      this.cv.BORDER_CONSTANT,
+      new this.cv.Scalar()
+    );
+
+    const canvas = document.createElement('canvas');
+    this.cv.imshow(canvas, dst);
+
+    src.delete();
+    dst.delete();
+
+    srcTri.delete();
+    srcTri = null;
+
+    dstTri.delete();
+    dstTri = null;
 
     return canvas;
   }
@@ -119,7 +295,7 @@ export class WebScanner {
         this.cv.CHAIN_APPROX_SIMPLE
       );
 
-      let maxArea = 0;
+      let maxArea = 0.15 * img.rows * img.cols;
       let maxContourIndex = -1;
 
       for (let i = 0; i < contours.size(); ++i) {
@@ -157,26 +333,46 @@ export class WebScanner {
     return contourExists;
   }
 
-  drawContourInImage(img: any, contour: any) {
-    let contoursToDraw = new this.cv.MatVector();
-    let approxCurve = new this.cv.Mat();
-
+  drawContourInImage(img: any, points: any) {
     try {
-      this.getApproximatePolyDBContour(contour, approxCurve);
-      contoursToDraw.push_back(approxCurve);
-      this.cv.drawContours(
+      const { topLeft, topRight, bottomLeft, bottomRight } = points;
+
+      if (!topLeft || !topRight || !bottomLeft || !bottomRight) return;
+
+      const color = new this.cv.Scalar(255, 255, 0, 255);
+
+      this.cv.line(
         img,
-        contoursToDraw,
-        0,
-        new this.cv.Scalar(255, 255, 0, 255),
+        new this.cv.Point(topLeft.x, topLeft.y),
+        new this.cv.Point(topRight.x, topRight.y),
+        color,
         2
       );
-      this.deleteCVObject(contoursToDraw);
-      this.deleteCVObject(approxCurve);
-    } catch (error: any) {
-      this.deleteCVObject(contoursToDraw);
-      this.deleteCVObject(approxCurve);
 
+      this.cv.line(
+        img,
+        new this.cv.Point(topRight.x, topRight.y),
+        new this.cv.Point(bottomRight.x, bottomRight.y),
+        color,
+        2
+      );
+
+      this.cv.line(
+        img,
+        new this.cv.Point(bottomRight.x, bottomRight.y),
+        new this.cv.Point(bottomLeft.x, bottomLeft.y),
+        color,
+        2
+      );
+
+      this.cv.line(
+        img,
+        new this.cv.Point(bottomLeft.x, bottomLeft.y),
+        new this.cv.Point(topLeft.x, topLeft.y),
+        color,
+        2
+      );
+    } catch (error: any) {
       throw new Error(error);
     }
   }
@@ -190,5 +386,73 @@ export class WebScanner {
     if (!matrix || matrix._deleted) return;
     matrix.delete();
     matrix._deleted = true;
+  }
+
+  getContourCornerPoints(contour: any): {
+    topLeft: any;
+    topRight: any;
+    bottomLeft: any;
+    bottomRight: any;
+  } {
+    if (!contour)
+      return {
+        topLeft: null,
+        topRight: null,
+        bottomLeft: null,
+        bottomRight: null,
+      };
+
+    let rect = this.cv.minAreaRect(contour);
+
+    const center = rect.center;
+    let topLeft;
+    let topLeftCornerDist = 0;
+    let topRight;
+    let topRightCornerDist = 0;
+    let bottomLeft;
+    let bottomLeftCornerDist = 0;
+    let bottomRight;
+    let bottomRightCornerDist = 0;
+
+    for (let i = 0; i < contour.data32S.length; i += 2) {
+      const point = { x: contour.data32S[i], y: contour.data32S[i + 1] };
+      const dist = this.distance(point, center);
+      if (point.x < center.x && point.y < center.y) {
+        // top left
+        if (dist > topLeftCornerDist) {
+          topLeft = point;
+          topLeftCornerDist = dist;
+        }
+      } else if (point.x > center.x && point.y < center.y) {
+        // top right
+        if (dist > topRightCornerDist) {
+          topRight = point;
+          topRightCornerDist = dist;
+        }
+      } else if (point.x < center.x && point.y > center.y) {
+        // bottom left
+        if (dist > bottomLeftCornerDist) {
+          bottomLeft = point;
+          bottomLeftCornerDist = dist;
+        }
+      } else if (point.x > center.x && point.y > center.y) {
+        // bottom right
+        if (dist > bottomRightCornerDist) {
+          bottomRight = point;
+          bottomRightCornerDist = dist;
+        }
+      }
+    }
+
+    return {
+      topLeft,
+      topRight,
+      bottomLeft,
+      bottomRight,
+    };
+  }
+
+  distance(p1: { x: number; y: number }, p2: { x: number; y: number }) {
+    return Math.hypot(p1.x - p2.x, p1.y - p2.y);
   }
 }

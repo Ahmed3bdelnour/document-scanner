@@ -1,6 +1,12 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { Subscription, fromEvent, take } from 'rxjs';
-import { WebScanner } from './model';
+import { ScanResult, WebScanner } from './model';
 import { loadOpenCV } from './opencv-loader';
 
 declare let cv: any;
@@ -11,6 +17,9 @@ declare let cv: any;
   styleUrls: ['./jscannify-document-scanner.component.scss'],
 })
 export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
+  @Output() onCapture = new EventEmitter();
+  @Output() onClose = new EventEmitter();
+
   // @ts-ignore
   video: HTMLVideoElement;
   stream: MediaStream | null = null;
@@ -18,7 +27,23 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   frameRate = 30;
   scanner: any;
 
+  useAutoCapturing = true;
+  scanResult = ScanResult.NoDocument;
+  autoCropTimeoutId: any;
+
   subscriptions = new Subscription();
+
+  get isVideoClosed() {
+    return !this.video?.srcObject;
+  }
+
+  get isVideoStreaming() {
+    return !this.isVideoClosed && !this.video.paused;
+  }
+
+  get isVideoPaused() {
+    return !this.isVideoClosed && this.video.paused;
+  }
 
   ngOnInit() {}
 
@@ -26,7 +51,7 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
     // show loading message...
     loadOpenCV(
       {
-        asm: 'https://ahmed3bdelnour.github.io/document-scanner/assets/js/custom-opencv-build-2/opencv.js',
+        asm: 'http://localhost:3000/assets/js/custom-opencv-build-2/opencv.js',
       },
       () => {
         this.InitScanner();
@@ -69,6 +94,7 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       fromEvent(this.video, 'play').subscribe(() => {
         console.log('The video is playing.');
+
         setTimeout(this.processVideo, 0);
       })
     );
@@ -106,18 +132,43 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   };
 
   processVideo = () => {
-    if (!this.video || !this.video.srcObject || this.video.paused) return;
+    if (this.isVideoClosed || this.isVideoPaused) return;
 
     console.log('highlight interval is playing...');
 
     const startProcessingTime = Date.now();
 
     try {
-      this.scanner.highlightPaper(
-        this.capture,
-        this.video.width,
-        this.video.height
-      );
+      if (!this.useAutoCapturing) {
+        this.scanner.renderOriginalVideo(
+          this.capture,
+          this.video.width,
+          this.video.height
+        );
+      }
+
+      if (this.useAutoCapturing) {
+        this.scanResult = this.scanner.highlightPaper(
+          this.capture,
+          this.video.width,
+          this.video.height
+        );
+
+        const shouldAutoCrop = this.scanResult === ScanResult.ReadyDocument;
+
+        if (shouldAutoCrop && this.autoCropTimeoutId === undefined) {
+          this.autoCropTimeoutId = setTimeout(() => {
+            if (!shouldAutoCrop) {
+              this.removeAutoCroppingListener();
+              return;
+            }
+
+            this.captureDocument(false);
+          }, 1000);
+        } else if (!shouldAutoCrop && this.autoCropTimeoutId !== undefined) {
+          this.removeAutoCroppingListener();
+        }
+      }
     } catch (error) {
       console.error(error);
       return;
@@ -130,6 +181,12 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   };
 
   stopCamera = () => {
+    this.onClose.emit();
+    this.removeAutoCroppingListener();
+    this.resetVideo();
+  };
+
+  resetVideo() {
     if (!this.video) return;
 
     const stream = this.video.srcObject as MediaStream;
@@ -138,7 +195,37 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
 
     if (!stream) return;
     stream.getVideoTracks()[0].stop();
-  };
+  }
+
+  toggleCapturingMode() {
+    this.useAutoCapturing = !this.useAutoCapturing;
+    this.scanResult = ScanResult.NoDocument;
+    this.removeAutoCroppingListener();
+  }
+
+  captureDocument(fullImage: boolean) {
+    const resultCanvas = this.scanner.extractPaper(
+      this.capture,
+      this.video.width,
+      this.video.height,
+      fullImage
+    );
+
+    this.onCapture.emit(resultCanvas.toDataURL('image/png'));
+    this.stopCamera();
+  }
+
+  handleFileUpload(event: Event) {
+    console.log((event.target as HTMLInputElement).files);
+    this.stopCamera();
+  }
+
+  removeAutoCroppingListener() {
+    if (!this.autoCropTimeoutId) return;
+
+    clearTimeout(this.autoCropTimeoutId);
+    this.autoCropTimeoutId = undefined;
+  }
 
   ngOnDestroy(): void {
     this.stopCamera();
