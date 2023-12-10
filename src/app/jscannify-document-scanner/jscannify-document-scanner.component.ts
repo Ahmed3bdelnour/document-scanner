@@ -51,7 +51,7 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
     // show loading message...
     loadOpenCV(
       {
-        asm: 'http://localhost:3000/assets/js/custom-opencv-build-2/opencv.js',
+        asm: 'https://ahmed3bdelnour.github.io/document-scanner/assets/js/custom-opencv-build-2/opencv.js',
       },
       () => {
         this.InitScanner();
