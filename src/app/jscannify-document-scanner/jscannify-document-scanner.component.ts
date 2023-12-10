@@ -24,12 +24,15 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   video: HTMLVideoElement;
   stream: MediaStream | null = null;
   capture: any = null;
-  frameRate = 30;
+  frameRate = 0;
   scanner: any;
 
   useAutoCapturing = true;
   scanResult = ScanResult.NoDocument;
   autoCropTimeoutId: any;
+
+  availableCameras: any[] = [];
+  activeCameraIndex = 0;
 
   subscriptions = new Subscription();
 
@@ -106,21 +109,24 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
     );
 
     this.getAvailableRearCameras();
-    this.openCamera();
   }
 
   openCamera = () => {
+    const activeCamera = this.availableCameras[this.activeCameraIndex];
+    if (!activeCamera) return;
+
     navigator.mediaDevices
       .getUserMedia({
         video: {
-          facingMode: 'environment',
-          frameRate: { exact: this.frameRate },
+          deviceId: activeCamera.deviceId,
         },
         audio: false,
       })
       .then((stream) => {
         this.video.srcObject = stream;
         this.stream = stream;
+        const videoTrack = this.stream.getVideoTracks()[0];
+        this.frameRate = videoTrack?.getSettings?.().frameRate || 30;
 
         fromEvent(this.video, 'canplay')
           .pipe(take(1))
@@ -143,13 +149,44 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
       })
       .then((cameras) => {
         console.log(cameras);
+        const rearCameras = cameras.filter((camera) =>
+          camera.label.toLowerCase().includes('back')
+        );
+
+        this.availableCameras = rearCameras.length ? rearCameras : cameras;
+        if (!this.availableCameras.length)
+          throw new Error('No available cameras');
+
+        this.activeCameraIndex = 0;
+        this.openCamera();
       })
       .catch((error: any) => {
         alert('Can not get cameras information: ' + error);
       });
   }
 
-  switchCamera() {}
+  switchCamera() {
+    const videoTrack = this.stream?.getVideoTracks()[0];
+    if (!videoTrack) return;
+
+    this.activeCameraIndex++;
+    if (this.activeCameraIndex > this.availableCameras.length - 1)
+      this.activeCameraIndex = 0;
+
+    const activeCamera = this.availableCameras[this.activeCameraIndex];
+    if (!activeCamera) return;
+
+    videoTrack
+      .applyConstraints({
+        deviceId: activeCamera.deviceId,
+      })
+      .then(() => {
+        console.log('Constraints applied successfully');
+      })
+      .catch((error: any) => {
+        alert('Error switching camera: ' + error);
+      });
+  }
 
   processVideo = () => {
     if (this.isVideoClosed || this.isVideoPaused) return;
@@ -200,11 +237,15 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
     );
   };
 
-  stopCamera = () => {
+  stopCameraAndFireCloseEvent = () => {
     this.onClose.emit();
+    this.stopCamera();
+  };
+
+  stopCamera() {
     this.removeAutoCroppingListener();
     this.resetVideo();
-  };
+  }
 
   resetVideo() {
     if (!this.video) return;
@@ -232,12 +273,12 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
     );
 
     this.onCapture.emit(resultCanvas.toDataURL('image/png'));
-    this.stopCamera();
+    this.stopCameraAndFireCloseEvent();
   }
 
   handleFileUpload(event: Event) {
     console.log((event.target as HTMLInputElement).files);
-    this.stopCamera();
+    this.stopCameraAndFireCloseEvent();
   }
 
   removeAutoCroppingListener() {
@@ -248,7 +289,7 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.stopCamera();
+    this.stopCameraAndFireCloseEvent();
     this.subscriptions.unsubscribe();
     if (this.capture) this.capture = null;
   }

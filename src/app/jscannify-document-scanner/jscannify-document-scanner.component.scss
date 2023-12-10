@@ -154,6 +154,10 @@
       padding: 10px;
       margin-bottom: 10px;
 
+      switch-camera-and-capture-btn-container {
+        position: relative;
+      }
+
       .capture-cancel-btn,
       .file-upload-btn {
         width: 40px;
@@ -165,7 +169,8 @@
         cursor: pointer;
       }
 
-      .capture-image-btn {
+      .capture-image-btn,
+      .switch-camera-btn {
         width: 48px;
         height: 48px;
         border: none;
@@ -177,7 +182,14 @@
         justify-content: center;
         border-radius: 50%;
         position: relative;
-        top: -2px;
+        top: -20px;
+      }
+
+      .switch-camera-btn {
+        top: unset;
+        bottom: -5px;
+        transform: translateY(-100%);
+        margin-bottom: -10px;
       }
 
       .capture-cancel-btn {
