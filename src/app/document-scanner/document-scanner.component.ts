@@ -99,7 +99,11 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       })
     );
 
-    this.getAvailableRearCameras();
+    // this.getAvailableRearCameras();
+
+    this.openCamera().then((devices: void | any[]) => {
+      devices!.forEach((d) => alert(JSON.stringify(d)));
+    });
   }
 
   getAvailableRearCameras() {
@@ -127,7 +131,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
           throw new Error('No available cameras');
 
         this.activeCameraIndex = 0;
-        this.openCamera();
+        // this.openCamera();
       })
       .catch((error: any) => {
         alert('Can not get cameras information: ' + error);
@@ -136,14 +140,14 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
 
   openCamera = () => {
     const activeCamera = this.availableCameras[this.activeCameraIndex];
-    if (!activeCamera) return;
+    // if (!activeCamera) return;
 
     this.loadingCameraError = false;
 
-    navigator.mediaDevices
+    return navigator.mediaDevices
       .getUserMedia({
         video: {
-          deviceId: activeCamera.deviceId
+          deviceId: activeCamera?.deviceId
             ? { exact: activeCamera.deviceId }
             : undefined,
         },
@@ -162,6 +166,8 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
             this.video.play();
             this.capture = new cv.VideoCapture(this.video);
           });
+
+        return navigator.mediaDevices.enumerateDevices();
       })
       .catch((error) => {
         this.loadingCameraError = true;
