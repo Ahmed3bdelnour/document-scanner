@@ -10,15 +10,8 @@
   />
 </div>
 
-<!-- <app-document-scanner
+<app-document-scanner
   *ngIf="showDocumentScanner"
-  (onCapture)="handleScannedDocument($event)"
-  (onCancel)="handleCancelScanning()"
-  (onClose)="showDocumentScanner = false"
-></app-document-scanner> -->
-
-<app-jscannify-document-scanner
-  *ngIf="showDocumentScanner"
-  (onClose)="showDocumentScanner = false"
+  (onClose)="handleClose()"
   (onCapture)="handleCapturedDocument($event)"
-></app-jscannify-document-scanner>
+></app-document-scanner>
