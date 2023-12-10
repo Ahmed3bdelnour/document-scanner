@@ -111,11 +111,17 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
         );
       })
       .then((cameras) => {
+        console.log('Cameras, ', cameras);
         const rearCameras = cameras.filter((camera) =>
           camera.label.toLowerCase().includes('back')
         );
 
+        console.log('Rear Cameras, ', rearCameras);
+
         this.availableCameras = rearCameras.length ? rearCameras : cameras;
+
+        console.log('available Cameras, ', this.availableCameras);
+
         if (!this.availableCameras.length)
           throw new Error('No available cameras');
 
