@@ -106,6 +106,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
     navigator.mediaDevices
       .enumerateDevices()
       .then((devices) => {
+        devices.forEach((device) => alert(JSON.stringify(device)));
         return devices.filter(
           (device) => device.kind.toLowerCase() === 'videoinput'
         );
