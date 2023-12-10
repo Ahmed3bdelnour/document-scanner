@@ -105,6 +105,7 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
       })
     );
 
+    this.getAvailableRearCameras();
     this.openCamera();
   }
 
@@ -130,6 +131,25 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
       })
       .catch((error) => alert('Failed to open camera: ' + error));
   };
+
+  getAvailableRearCameras() {
+    navigator.mediaDevices
+      .enumerateDevices()
+      .then((devices) => {
+        console.log(devices);
+        return devices.filter(
+          (device) => device.kind.toLowerCase() === 'videoinput'
+        );
+      })
+      .then((cameras) => {
+        console.log(cameras);
+      })
+      .catch((error: any) => {
+        alert('Can not get cameras information: ' + error);
+      });
+  }
+
+  switchCamera() {}
 
   processVideo = () => {
     if (this.isVideoClosed || this.isVideoPaused) return;
