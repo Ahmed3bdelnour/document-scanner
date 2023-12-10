@@ -16,4 +16,8 @@ export class AppComponent {
   handleCancelScanning() {
     console.log('Scanning cancelled');
   }
+
+  handleClose() {
+    this.showDocumentScanner = false;
+  }
 }

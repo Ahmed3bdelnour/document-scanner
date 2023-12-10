@@ -33,6 +33,9 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
 
   availableCameras: any[] = [];
   activeCameraIndex = 0;
+  loadingCameraError = false;
+
+  closed = false;
 
   subscriptions = new Subscription();
 
@@ -115,6 +118,8 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
     const activeCamera = this.availableCameras[this.activeCameraIndex];
     if (!activeCamera) return;
 
+    this.loadingCameraError = false;
+
     navigator.mediaDevices
       .getUserMedia({
         video: {
@@ -131,11 +136,15 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
         fromEvent(this.video, 'canplay')
           .pipe(take(1))
           .subscribe(() => {
+            this.loadingCameraError = false;
             this.video.play();
             this.capture = new cv.VideoCapture(this.video);
           });
       })
-      .catch((error) => alert('Failed to open camera: ' + error));
+      .catch((error) => {
+        this.loadingCameraError = true;
+        alert('Failed to open camera: ' + error);
+      });
   };
 
   getAvailableRearCameras() {
@@ -166,26 +175,29 @@ export class JscannifyDocumentScannerComponent implements OnInit, OnDestroy {
   }
 
   switchCamera() {
-    const videoTrack = this.stream?.getVideoTracks()[0];
-    if (!videoTrack) return;
+    // const videoTrack = this.stream?.getVideoTracks()[0];
+    // if (!videoTrack) return;
 
     this.activeCameraIndex++;
     if (this.activeCameraIndex > this.availableCameras.length - 1)
       this.activeCameraIndex = 0;
 
-    const activeCamera = this.availableCameras[this.activeCameraIndex];
-    if (!activeCamera) return;
+    this.stopCamera();
+    this.openCamera();
 
-    videoTrack
-      .applyConstraints({
-        deviceId: activeCamera.deviceId,
-      })
-      .then(() => {
-        console.log('Constraints applied successfully');
-      })
-      .catch((error: any) => {
-        alert('Error switching camera: ' + error);
-      });
+    // const activeCamera = this.availableCameras[this.activeCameraIndex];
+    // if (!activeCamera) return;
+
+    // videoTrack
+    //   .applyConstraints({
+    //     deviceId: activeCamera.deviceId,
+    //   })
+    //   .then(() => {
+    //     console.log('Constraints applied successfully');
+    //   })
+    //   .catch((error: any) => {
+    //     alert('Error switching camera: ' + error);
+    //   });
   }
 
   processVideo = () => {

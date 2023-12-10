@@ -1,9 +1,15 @@
 <div class="camera-container">
-  <div class="loading-camera-message" *ngIf="isVideoClosed">
+  <div
+    class="loading-camera-message"
+    *ngIf="isVideoClosed && !loadingCameraError"
+  >
     Loading camera, please wait...
   </div>
 
-  <div class="scanning-view-container" [hidden]="isVideoClosed">
+  <div
+    class="scanning-view-container"
+    [hidden]="isVideoClosed && !loadingCameraError"
+  >
     <img
       class="top-left-angle"
       src="assets/svg/right-angle.svg"
@@ -42,11 +48,20 @@
       <ng-container *ngIf="scanResult === 2">Cropping...</ng-container>
     </div>
 
-    <video id="video" playsinline autoplay loop></video>
-    <canvas id="result"></canvas>
+    <video
+      id="video"
+      playsinline
+      autoplay
+      loop
+      [hidden]="loadingCameraError"
+    ></video>
+    <canvas id="result" [hidden]="loadingCameraError"></canvas>
 
     <div class="bottom-controls-container">
-      <button class="capture-cancel-btn" (click)="stopCamera()">
+      <button
+        class="capture-cancel-btn"
+        (click)="stopCameraAndFireCloseEvent()"
+      >
         <img
           src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICAgIDxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPHBhdGggZD0iTTAgMGgyNHYyNEgweiIvPgogICAgICAgIDxwYXRoIGZpbGw9IiNGRkYiIGQ9Ik0xOSA2LjQxTDE3LjU5IDUgMTIgMTAuNTkgNi40MSA1IDUgNi40MSAxMC41OSAxMiA1IDE3LjU5IDYuNDEgMTkgMTIgMTMuNDEgMTcuNTkgMTkgMTkgMTcuNTkgMTMuNDEgMTJ6Ii8+CiAgICA8L2c+Cjwvc3ZnPgo="
           alt="Cancel capture"
