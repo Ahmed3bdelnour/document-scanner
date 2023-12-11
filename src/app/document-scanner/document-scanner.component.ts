@@ -99,18 +99,21 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       })
     );
 
-    // this.getAvailableRearCameras();
-
-    this.openCamera().then((devices: void | any[]) => {
-      devices!.forEach((d) => alert(JSON.stringify(d)));
-    });
+    await this.getAvailableCameras();
+    this.openCamera();
   }
 
-  getAvailableRearCameras() {
-    navigator.mediaDevices
-      .enumerateDevices()
+  getAvailableCameras() {
+    return navigator.mediaDevices
+      .getUserMedia({
+        video: {
+          facingMode: 'environment',
+        },
+        audio: false,
+      })
+      .then(() => navigator.mediaDevices.enumerateDevices())
       .then((devices) => {
-        devices.forEach((device) => alert(JSON.stringify(device)));
+        devices.forEach((d) => alert(JSON.stringify(d)));
         return devices.filter(
           (device) => device.kind.toLowerCase() === 'videoinput'
         );
@@ -131,7 +134,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
           throw new Error('No available cameras');
 
         this.activeCameraIndex = 0;
-        // this.openCamera();
+        return;
       })
       .catch((error: any) => {
         alert('Can not get cameras information: ' + error);
@@ -140,16 +143,14 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
 
   openCamera = () => {
     const activeCamera = this.availableCameras[this.activeCameraIndex];
-    // if (!activeCamera) return;
+    if (!activeCamera) return;
 
     this.loadingCameraError = false;
 
     return navigator.mediaDevices
       .getUserMedia({
         video: {
-          deviceId: activeCamera?.deviceId
-            ? { exact: activeCamera.deviceId }
-            : undefined,
+          deviceId: { exact: activeCamera.deviceId },
         },
         audio: false,
       })
@@ -166,8 +167,6 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
             this.video.play();
             this.capture = new cv.VideoCapture(this.video);
           });
-
-        return navigator.mediaDevices.enumerateDevices();
       })
       .catch((error) => {
         this.loadingCameraError = true;
