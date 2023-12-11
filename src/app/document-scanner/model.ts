@@ -69,6 +69,9 @@ export class WebScanner {
     let imageWidth = src.cols;
     let imageHeight = src.rows;
 
+    let resultWidth;
+    let resultHeight;
+
     let topLeftCorner: any;
     let topRightCorner: any;
     let bottomLeftCorner: any;
@@ -79,6 +82,8 @@ export class WebScanner {
       topRightCorner = { x: imageWidth, y: 0 };
       bottomLeftCorner = { x: 0, y: imageHeight };
       bottomRightCorner = { x: imageWidth, y: imageHeight };
+      resultWidth = imageWidth;
+      resultHeight = imageHeight;
     } else {
       let contour = new this.cv.Mat();
       const contourExists = this.findDocumentContour(src, contour);
@@ -88,6 +93,8 @@ export class WebScanner {
         topRightCorner = { x: imageWidth, y: 0 };
         bottomLeftCorner = { x: 0, y: imageHeight };
         bottomRightCorner = { x: imageWidth, y: imageHeight };
+        resultWidth = imageWidth;
+        resultHeight = imageHeight;
       } else {
         const contourPoints = this.getContourCornerPoints(contour);
 
@@ -101,18 +108,23 @@ export class WebScanner {
           topRightCorner = { x: imageWidth, y: 0 };
           bottomLeftCorner = { x: 0, y: imageHeight };
           bottomRightCorner = { x: imageWidth, y: imageHeight };
+          resultWidth = imageWidth;
+          resultHeight = imageHeight;
         } else {
           topLeftCorner = contourPoints.topLeft;
           topRightCorner = contourPoints.topRight;
           bottomLeftCorner = contourPoints.bottomLeft;
           bottomRightCorner = contourPoints.bottomRight;
+          const rect = this.cv.boundingRect(contour);
+          resultWidth = rect.width;
+          resultHeight = rect.height;
         }
       }
 
       this.deleteCVObject(contour);
     }
 
-    let dsize = new this.cv.Size(imageWidth, imageHeight);
+    let dsize = new this.cv.Size(resultWidth, resultHeight);
     let srcTri = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
       topLeftCorner.x,
       topLeftCorner.y,
@@ -127,12 +139,12 @@ export class WebScanner {
     let dstTri = this.cv.matFromArray(4, 1, this.cv.CV_32FC2, [
       0,
       0,
-      imageWidth,
+      resultWidth,
       0,
       0,
-      imageHeight,
-      imageWidth,
-      imageHeight,
+      resultHeight,
+      resultWidth,
+      resultHeight,
     ]);
 
     let M = this.cv.getPerspectiveTransform(srcTri, dstTri);
@@ -192,7 +204,7 @@ export class WebScanner {
       this.cv.CHAIN_APPROX_SIMPLE
     );
 
-    let maxArea = 0.25 * img.rows * img.cols;
+    let maxArea = 0.2 * img.rows * img.cols;
     let maxContourIndex = -1;
 
     for (let i = 0; i < contours.size(); ++i) {

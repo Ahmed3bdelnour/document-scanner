@@ -24,7 +24,6 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
   video: HTMLVideoElement;
   stream: MediaStream | null = null;
   capture: any = null;
-  frameRate = 0;
   scanner: any;
 
   useAutoCapturing = true;
@@ -151,7 +150,6 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
         this.video.srcObject = stream;
         this.stream = stream;
         const videoTrack = this.stream.getVideoTracks()[0];
-        this.frameRate = videoTrack?.getSettings?.().frameRate || 30;
 
         fromEvent(this.video, 'canplay')
           .pipe(take(1))
@@ -182,8 +180,6 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
 
   processVideo = () => {
     if (this.isVideoClosed || this.isVideoPaused) return;
-
-    const startProcessingTime = Date.now();
 
     try {
       if (!this.useAutoCapturing) {
@@ -221,10 +217,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       return;
     }
 
-    setTimeout(
-      this.processVideo,
-      1000 / this.frameRate - (Date.now() - startProcessingTime)
-    );
+    setTimeout(this.processVideo, 100);
   };
 
   stopCameraAndFireCloseEvent = () => {
