@@ -20,7 +20,7 @@
   }
 
   .scanning-view-container {
-    position: fixed;
+    position: absolute;
     top: 0px;
     left: 0px;
     z-index: 1000;
@@ -50,13 +50,13 @@
     }
 
     .bottom-left-angle {
-      bottom: 0px;
+      bottom: 60px;
       left: 0px;
       transform: rotate(270deg);
     }
 
     .bottom-right-angle {
-      bottom: 0px;
+      bottom: 60px;
       right: 0px;
       transform: rotate(180deg);
     }
@@ -149,6 +149,10 @@
       top: 0;
       left: 0;
       object-fit: cover;
+    }
+
+    #video {
+      visibility: hidden;
     }
 
     .bottom-controls-container {
