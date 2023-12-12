@@ -90,7 +90,7 @@
         outline: none;
         border: none;
         cursor: pointer;
-        color: white;
+        color: #efefef;
         font-weight: 400;
       }
     }
@@ -209,6 +209,15 @@
         font-weight: 400;
         background-color: white;
       }
+    }
+  }
+
+  &.android {
+    height: calc(100vh - 60px);
+
+    .video-and-canvas-container,
+    .controls-and-status-container {
+      height: calc(100vh - 60px);
     }
   }
 }

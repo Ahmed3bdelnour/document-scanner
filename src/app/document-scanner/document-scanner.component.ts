@@ -1,11 +1,9 @@
 import {
   Component,
-  ElementRef,
   EventEmitter,
   OnDestroy,
   OnInit,
   Output,
-  ViewChild,
 } from '@angular/core';
 import { Subscription, fromEvent, take } from 'rxjs';
 import { ScanResult, WebScanner } from './model';
@@ -21,8 +19,6 @@ declare let cv: any;
 export class DocumentScannerComponent implements OnInit, OnDestroy {
   @Output() onCapture = new EventEmitter();
   @Output() onClose = new EventEmitter();
-  // @ts-ignore
-  @ViewChild('scannerContainer') scannerContainer: ElementRef;
 
   // @ts-ignore
   video: HTMLVideoElement;
@@ -54,6 +50,25 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
     return !this.isVideoClosed && this.video.paused;
   }
 
+  get userMobileOS() {
+    var userAgent =
+      navigator.userAgent || navigator.vendor || (window as any).opera;
+
+    if (/windows phone/i.test(userAgent)) {
+      return 'Windows Phone';
+    }
+
+    if (/android/i.test(userAgent)) {
+      return 'Android';
+    }
+
+    if (/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream) {
+      return 'iOS';
+    }
+
+    return 'unknown';
+  }
+
   ngOnInit() {}
 
   ngAfterViewInit(): void {
@@ -78,19 +93,12 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
     cv = await cv;
     this.scanner = new WebScanner(cv);
 
-    const scannerContainerStyles = getComputedStyle(
-      this.scannerContainer.nativeElement
-    );
-    const scannerContainerWidth = parseInt(
-      scannerContainerStyles.getPropertyValue('width')
-    );
-    const scannerContainerHeight = parseInt(
-      scannerContainerStyles.getPropertyValue('height')
-    );
-
     this.video = document.getElementById('video')! as HTMLVideoElement;
-    this.video.width = scannerContainerWidth;
-    this.video.height = scannerContainerHeight;
+    this.video.width = screen.availWidth;
+    this.video.height =
+      this.userMobileOS !== 'Android'
+        ? screen.availHeight
+        : screen.availHeight - 60;
 
     this.subscriptions.add(
       fromEvent(document, 'visibilitychange').subscribe(() => {
