@@ -153,15 +153,13 @@
 
     .bottom-controls-container {
       position: absolute;
-      bottom: 0px;
-      left: 0px;
+      bottom: 65px;
+      left: 0;
       z-index: 1000;
       display: flex;
       align-items: center;
       justify-content: space-evenly;
-      width: calc(100% - 20px);
-      padding: 10px;
-      margin-bottom: 10px;
+      width: 100%;
 
       switch-camera-and-capture-btn-container {
         position: relative;
