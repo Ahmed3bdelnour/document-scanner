@@ -8,7 +8,6 @@
 
   <div
     class="video-and-canvas-container"
-    [style.height.px]="windowInnerHeight"
     [hidden]="isVideoClosed && !loadingCameraError"
   >
     <video
@@ -23,7 +22,6 @@
 
   <div
     class="controls-and-status-container"
-    [style.height.px]="windowInnerHeight"
     *ngIf="!isVideoClosed || loadingCameraError"
   >
     <div class="angles-container">
