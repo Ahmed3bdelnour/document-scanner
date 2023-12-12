@@ -50,23 +50,8 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
     return !this.isVideoClosed && this.video.paused;
   }
 
-  get userMobileOS() {
-    var userAgent =
-      navigator.userAgent || navigator.vendor || (window as any).opera;
-
-    if (/windows phone/i.test(userAgent)) {
-      return 'Windows Phone';
-    }
-
-    if (/android/i.test(userAgent)) {
-      return 'Android';
-    }
-
-    if (/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream) {
-      return 'iOS';
-    }
-
-    return 'unknown';
+  get windowInnerHeight() {
+    return window.innerHeight;
   }
 
   ngOnInit() {}
@@ -95,10 +80,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
 
     this.video = document.getElementById('video')! as HTMLVideoElement;
     this.video.width = window.innerWidth;
-    this.video.height =
-      this.userMobileOS !== 'Android'
-        ? window.innerHeight
-        : window.innerHeight - 60;
+    this.video.height = window.innerHeight;
 
     this.subscriptions.add(
       fromEvent(document, 'visibilitychange').subscribe(() => {

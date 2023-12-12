@@ -1,4 +1,4 @@
-<div class="camera-container" [class.android]="userMobileOS === 'Android'">
+<div class="camera-container" [style.height.px]="windowInnerHeight">
   <div
     class="loading-camera-message"
     *ngIf="isVideoClosed && !loadingCameraError"
@@ -8,6 +8,7 @@
 
   <div
     class="video-and-canvas-container"
+    [style.height.px]="windowInnerHeight"
     [hidden]="isVideoClosed && !loadingCameraError"
   >
     <video
@@ -22,6 +23,7 @@
 
   <div
     class="controls-and-status-container"
+    [style.height.px]="windowInnerHeight"
     *ngIf="!isVideoClosed || loadingCameraError"
   >
     <div class="angles-container">

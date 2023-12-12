@@ -4,7 +4,6 @@
   left: 0px;
   z-index: 1000;
   width: 100vw;
-  height: 100vh;
   background: white;
 
   .loading-camera-message {
@@ -25,7 +24,6 @@
     left: 0px;
     z-index: 1000;
     width: 100vw;
-    height: 100vh;
 
     #video,
     #result {
@@ -46,7 +44,6 @@
     left: 0px;
     z-index: 1000;
     width: 100vw;
-    height: 100vh;
     display: flex;
     flex-direction: column;
 
@@ -209,15 +206,6 @@
         font-weight: 400;
         background-color: white;
       }
-    }
-  }
-
-  &.android {
-    height: calc(100vh - 60px);
-
-    .video-and-canvas-container,
-    .controls-and-status-container {
-      height: calc(100vh - 60px);
     }
   }
 }
