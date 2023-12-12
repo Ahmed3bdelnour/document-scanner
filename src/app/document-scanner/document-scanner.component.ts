@@ -143,8 +143,8 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       .getUserMedia({
         video: {
           deviceId: { exact: activeCamera.deviceId },
-          width: { ideal: this.video.height },
-          height: { ideal: this.video.width },
+          width: { ideal: this.video.width },
+          height: { ideal: this.video.height },
         },
         audio: false,
       })
