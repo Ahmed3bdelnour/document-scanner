@@ -68,7 +68,11 @@
         />
       </button>
       <div class="switch-camera-and-capture-btn-container">
-        <button class="switch-camera-btn" (click)="switchCamera()">
+        <button
+          *ngIf="availableCameras.length > 1"
+          class="switch-camera-btn"
+          (click)="switchCamera()"
+        >
           switch
         </button>
 

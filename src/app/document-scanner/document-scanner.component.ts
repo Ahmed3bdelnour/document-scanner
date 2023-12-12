@@ -75,8 +75,8 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
     this.scanner = new WebScanner(cv);
 
     this.video = document.getElementById('video')! as HTMLVideoElement;
-    this.video.width = screen.availWidth;
-    this.video.height = screen.availHeight;
+    this.video.width = screen.width;
+    this.video.height = screen.height;
 
     this.subscriptions.add(
       fromEvent(document, 'visibilitychange').subscribe(() => {
@@ -143,13 +143,14 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       .getUserMedia({
         video: {
           deviceId: { exact: activeCamera.deviceId },
+          width: { ideal: this.video.height },
+          height: { ideal: this.video.width },
         },
         audio: false,
       })
       .then((stream) => {
         this.video.srcObject = stream;
         this.stream = stream;
-        const videoTrack = this.stream.getVideoTracks()[0];
 
         fromEvent(this.video, 'canplay')
           .pipe(take(1))
