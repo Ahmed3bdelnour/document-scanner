@@ -81,10 +81,10 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
     const scannerContainerStyles = getComputedStyle(
       this.scannerContainer.nativeElement
     );
-    const scannerContainerWidth = parseFloat(
+    const scannerContainerWidth = parseInt(
       scannerContainerStyles.getPropertyValue('width')
     );
-    const scannerContainerHeight = parseFloat(
+    const scannerContainerHeight = parseInt(
       scannerContainerStyles.getPropertyValue('height')
     );
 
