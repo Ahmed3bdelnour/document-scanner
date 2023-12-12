@@ -1,9 +1,11 @@
 import {
   Component,
+  ElementRef,
   EventEmitter,
   OnDestroy,
   OnInit,
   Output,
+  ViewChild,
 } from '@angular/core';
 import { Subscription, fromEvent, take } from 'rxjs';
 import { ScanResult, WebScanner } from './model';
@@ -19,6 +21,8 @@ declare let cv: any;
 export class DocumentScannerComponent implements OnInit, OnDestroy {
   @Output() onCapture = new EventEmitter();
   @Output() onClose = new EventEmitter();
+  // @ts-ignore
+  @ViewChild('scannerContainer') scannerContainer: ElementRef;
 
   // @ts-ignore
   video: HTMLVideoElement;
@@ -74,9 +78,19 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
     cv = await cv;
     this.scanner = new WebScanner(cv);
 
+    const scannerContainerStyles = getComputedStyle(
+      this.scannerContainer.nativeElement
+    );
+    const scannerContainerWidth = parseFloat(
+      scannerContainerStyles.getPropertyValue('width')
+    );
+    const scannerContainerHeight = parseFloat(
+      scannerContainerStyles.getPropertyValue('height')
+    );
+
     this.video = document.getElementById('video')! as HTMLVideoElement;
-    this.video.width = screen.width;
-    this.video.height = screen.height;
+    this.video.width = scannerContainerWidth;
+    this.video.height = scannerContainerHeight;
 
     this.subscriptions.add(
       fromEvent(document, 'visibilitychange').subscribe(() => {
