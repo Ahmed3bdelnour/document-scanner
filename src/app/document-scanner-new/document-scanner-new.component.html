@@ -38,10 +38,10 @@
         class="example-box"
         cdkDrag
         (cdkDragEnded)="enableSorting = false"
+        (swipe)="onSwipe(i)"
+        (tap)="enableSorting = true"
       >
-        <div (swipe)="onSwipe(i)" (tap)="enableSorting = true">
-          {{ timePeriod }}
-        </div>
+        {{ timePeriod }}
       </div>
     </div>
   </div>
