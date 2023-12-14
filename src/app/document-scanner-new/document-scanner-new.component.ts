@@ -250,6 +250,18 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
     this.enableSorting = true;
   }
 
+  onSwipe(e: any) {
+    alert('tap' + JSON.stringify(e));
+  }
+
+  onSwipeLeft(e: any) {
+    alert('tap' + JSON.stringify(e));
+  }
+
+  onSwipeRight(e: any) {
+    alert('tap' + JSON.stringify(e));
+  }
+
   onSwipeUp(e: any) {
     alert('tap' + JSON.stringify(e));
   }
