@@ -258,6 +258,14 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
     alert('tap' + JSON.stringify(e));
   }
 
+  onPanup(index: any) {
+    this.timePeriods = this.timePeriods.filter((_, i) => i !== index);
+  }
+
+  onPandown(index: any) {
+    this.timePeriods = this.timePeriods.filter((_, i) => i !== index);
+  }
+
   ngOnDestroy(): void {
     this.stopCameraAndFireCloseEvent();
     this.subscriptions.unsubscribe();

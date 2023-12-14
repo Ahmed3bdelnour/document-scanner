@@ -1,9 +1,5 @@
 import { NgModule } from '@angular/core';
-import {
-  BrowserModule,
-  HAMMER_GESTURE_CONFIG,
-  HammerGestureConfig,
-} from '@angular/platform-browser';
+import { BrowserModule } from '@angular/platform-browser';
 
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { AppRoutingModule } from './app-routing.module';
@@ -13,14 +9,11 @@ import { DocumentScannerComponent } from './document-scanner/document-scanner.co
 
 import { HammerModule } from '@angular/platform-browser';
 
-export class MyHammerConfig extends HammerGestureConfig {
-  override overrides = <any>{
-    swipe: { direction: Hammer.DIRECTION_VERTICAL },
-  };
-}
-
-debugger;
-console.log(new HammerGestureConfig());
+// export class MyHammerConfig extends HammerGestureConfig {
+//   override overrides = <any>{
+//     swipe: { direction: Hammer.DIRECTION_VERTICAL },
+//   };
+// }
 
 @NgModule({
   declarations: [
@@ -30,10 +23,10 @@ console.log(new HammerGestureConfig());
   ],
   imports: [BrowserModule, AppRoutingModule, DragDropModule, HammerModule],
   providers: [
-    {
-      provide: HAMMER_GESTURE_CONFIG,
-      useClass: MyHammerConfig,
-    },
+    // {
+    //   provide: HAMMER_GESTURE_CONFIG,
+    //   useClass: MyHammerConfig,
+    // },
   ],
   bootstrap: [AppComponent],
 })

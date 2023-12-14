@@ -33,13 +33,16 @@
       (cdkDropListDropped)="drop($event)"
       [cdkDropListDisabled]="!enableSorting"
     >
+      <!-- (swipe)="onSwipe(i)" -->
+
       <div
         *ngFor="let timePeriod of timePeriods; let i = index"
         class="example-box"
         cdkDrag
         (cdkDragEnded)="enableSorting = false"
-        (swipe)="onSwipe(i)"
         (tap)="enableSorting = true"
+        (panup)="onPanup(i)"
+        (pandown)="onPandown(i)"
       >
         {{ timePeriod }}
       </div>
