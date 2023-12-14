@@ -31,10 +31,16 @@
       cdkDropListOrientation="horizontal"
       class="example-list"
       (cdkDropListDropped)="drop($event)"
-      [cdkDropListDisabled]="true"
+      [cdkDropListDisabled]="!enableSorting"
     >
-      <div *ngFor="let timePeriod of timePeriods" class="example-box" cdkDrag>
-        {{ timePeriod }}
+      <div
+        *ngFor="let timePeriod of timePeriods"
+        class="example-box"
+        cdkDrag
+        (click)="enableSorting = true"
+        (cdkDragEnded)="enableSorting = false"
+      >
+        <div>{{ timePeriod }}</div>
       </div>
     </div>
   </div>

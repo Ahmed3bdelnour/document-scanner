@@ -33,6 +33,8 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
 
   closed = false;
 
+  enableSorting = false;
+
   subscriptions = new Subscription();
 
   get isVideoClosed() {
@@ -241,6 +243,11 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
 
   drop(event: any) {
     moveItemInArray(this.timePeriods, event.previousIndex, event.currentIndex);
+  }
+
+  handleItemDoubleClick() {
+    debugger;
+    this.enableSorting = true;
   }
 
   ngOnDestroy(): void {
