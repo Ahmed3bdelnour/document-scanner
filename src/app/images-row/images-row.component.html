@@ -1,0 +1,10 @@
+<div class="image-row" #imageRow>
+  <div
+    class="image-container"
+    *ngFor="let imageUrl of images; let i = index"
+    (swipeup)="deleteImage(i)"
+    (swipedown)="deleteImage(i)"
+  >
+    {{ i }}
+  </div>
+</div>
