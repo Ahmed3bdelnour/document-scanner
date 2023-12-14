@@ -40,6 +40,9 @@
         (cdkDragEnded)="enableSorting = false"
       >
         <div
+          (swipe)="onSwipe($event)"
+          (swipeleft)="onSwipeLeft($event)"
+          (swiperight)="onSwipeRight($event)"
           (swipeup)="onSwipeUp($event)"
           (swipedown)="onSwipeDown($event)"
           (tap)="onTap($event)"
