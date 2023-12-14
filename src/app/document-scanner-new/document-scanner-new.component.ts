@@ -251,23 +251,23 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
   }
 
   onSwipe(e: any) {
-    alert('tap' + JSON.stringify(e));
+    alert('swipe' + JSON.stringify(e));
   }
 
   onSwipeLeft(e: any) {
-    alert('tap' + JSON.stringify(e));
+    alert('swipeleft' + JSON.stringify(e));
   }
 
   onSwipeRight(e: any) {
-    alert('tap' + JSON.stringify(e));
+    alert('swiperight' + JSON.stringify(e));
   }
 
   onSwipeUp(e: any) {
-    alert('tap' + JSON.stringify(e));
+    alert('swipeup' + JSON.stringify(e));
   }
 
   onSwipeDown(e: any) {
-    alert('tap' + JSON.stringify(e));
+    alert('swipedown' + JSON.stringify(e));
   }
 
   onTap(e: any) {
