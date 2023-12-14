@@ -32,14 +32,7 @@
       class="example-list"
       (cdkDropListDropped)="drop($event)"
     >
-      <div
-        *ngFor="let timePeriod of timePeriods; let i = index"
-        class="example-box"
-        cdkDrag
-      >
-        <!-- (swipe)="onSwipe(i)" -->
-        {{ timePeriod }}
-
+      <div *ngFor="let timePeriod of timePeriods" class="example-box" cdkDrag>
         <div class="example-handle" cdkDragHandle>
           <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
             <path
@@ -48,6 +41,14 @@
             <path d="M0 0h24v24H0z" fill="none"></path>
           </svg>
         </div>
+
+        <div class="example-delete">x</div>
+
+        <img
+          class="capture-image"
+          src="https://images.freeimages.com/images/large-previews/c0d/gerbera-series-1-1486599.jpg"
+          alt="capture-image"
+        />
       </div>
     </div>
   </div>

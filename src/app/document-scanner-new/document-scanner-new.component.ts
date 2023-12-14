@@ -1,4 +1,4 @@
-import { moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import {
   Component,
   EventEmitter,
@@ -223,52 +223,33 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
     this.autoCropTimeoutId = undefined;
   }
 
-  timePeriods = [
-    'Bronze age 1',
-    'Iron age 1',
-    'Middle ages 1',
-    'Early modern period 1',
-    'Long nineteenth century 1',
-    'Bronze age 2',
-    'Iron age',
-    'Middle ages',
-    'Early modern period',
-    'Long nineteenth century 2',
-    'Bronze age 3',
-    'Iron age 3',
-    'Middle ages 3',
-    'Early modern period 3',
-    'Long nineteenth century 3',
-  ];
-
-  drop(event: any) {
-    moveItemInArray(this.timePeriods, event.previousIndex, event.currentIndex);
-  }
-
-  handleItemDoubleClick() {
-    debugger;
-    this.enableSorting = true;
-  }
-
-  onSwipe(index: number) {
-    this.timePeriods = this.timePeriods.filter((_, i) => i !== index);
-  }
-
-  onTap(e: any) {
-    alert('tap' + JSON.stringify(e));
-  }
-
-  onPanup(index: any) {
-    this.timePeriods = this.timePeriods.filter((_, i) => i !== index);
-  }
-
-  onPandown(index: any) {
-    this.timePeriods = this.timePeriods.filter((_, i) => i !== index);
-  }
-
   ngOnDestroy(): void {
     this.stopCameraAndFireCloseEvent();
     this.subscriptions.unsubscribe();
     if (this.capture) this.capture = null;
+  }
+
+  //////////////
+
+  timePeriods = [
+    'Bronze age',
+    'Iron age',
+    'Middle ages',
+    'Early modern period',
+    'Long nineteenth century',
+    'Bronze age',
+    'Iron age',
+    'Middle ages',
+    'Early modern period',
+    'Long nineteenth century',
+    'Bronze age',
+    'Iron age',
+    'Middle ages',
+    'Early modern period',
+    'Long nineteenth century',
+  ];
+
+  drop(event: CdkDragDrop<string[]>) {
+    moveItemInArray(this.timePeriods, event.previousIndex, event.currentIndex);
   }
 }
