@@ -251,15 +251,15 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
   }
 
   onSwipeUp(e: any) {
-    alert(e);
+    alert('tap' + JSON.stringify(e));
   }
 
   onSwipeDown(e: any) {
-    alert(e);
+    alert('tap' + JSON.stringify(e));
   }
 
   onTap(e: any) {
-    alert(e);
+    alert('tap' + JSON.stringify(e));
   }
 
   ngOnDestroy(): void {

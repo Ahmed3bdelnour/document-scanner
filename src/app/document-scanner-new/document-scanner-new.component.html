@@ -37,7 +37,6 @@
         *ngFor="let timePeriod of timePeriods"
         class="example-box"
         cdkDrag
-        (click)="enableSorting = true"
         (cdkDragEnded)="enableSorting = false"
       >
         <div
