@@ -118,8 +118,8 @@
       flex-direction: row;
       background: white;
       border-radius: 4px;
-      overflow: auto;
-      touch-action: pan-x !important;
+      overflow-x: auto;
+      // touch-action: pan-x !important;
     }
 
     .example-box {

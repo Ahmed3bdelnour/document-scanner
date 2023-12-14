@@ -36,8 +36,8 @@
         *ngFor="let timePeriod of timePeriods; let i = index"
         class="example-box"
         cdkDrag
-        (swipe)="onSwipe(i)"
       >
+        <!-- (swipe)="onSwipe(i)" -->
         {{ timePeriod }}
 
         <div class="example-handle" cdkDragHandle>
