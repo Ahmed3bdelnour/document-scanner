@@ -25,14 +25,18 @@
     </div>
   </div>
 
-  <div class="captured-documents-container">
+  <div class="captured-documents-container" *ngIf="!isVideoClosed">
     <div
       cdkDropList
       cdkDropListOrientation="horizontal"
       class="example-list"
       (cdkDropListDropped)="drop($event)"
     >
-      <div *ngFor="let timePeriod of timePeriods" class="example-box" cdkDrag>
+      <div
+        *ngFor="let timePeriod of timePeriods; let i = index"
+        class="example-box"
+        cdkDrag
+      >
         <div class="example-handle" cdkDragHandle>
           <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
             <path
@@ -42,7 +46,7 @@
           </svg>
         </div>
 
-        <div class="example-delete">x</div>
+        <div class="example-delete" (click)="deleteCapture(i)">x</div>
 
         <img
           class="capture-image"

@@ -252,4 +252,8 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
   drop(event: CdkDragDrop<string[]>) {
     moveItemInArray(this.timePeriods, event.previousIndex, event.currentIndex);
   }
+
+  deleteCapture(index: number) {
+    this.timePeriods = this.timePeriods.filter((_, i) => i !== index);
+  }
 }

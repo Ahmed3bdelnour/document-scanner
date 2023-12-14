@@ -247,18 +247,25 @@
   width: 24px;
   height: 24px;
   z-index: 1;
+  background: #212121;
+  padding: 5px;
 }
 
 .example-delete {
   position: absolute;
   top: 10px;
   left: 10px;
-  // color: #ccc;
-  color: black;
+  color: #ccc;
   cursor: move;
   width: 24px;
   height: 24px;
   z-index: 1;
+  background: #212121;
+  padding: 5px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .capture-image {
