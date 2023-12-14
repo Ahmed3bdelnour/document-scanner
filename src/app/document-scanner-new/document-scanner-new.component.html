@@ -34,14 +34,6 @@
       [cdkDropListDisabled]="!enableSorting"
     >
       <div
-        (swipeup)="onSwipeUp($event)"
-        (swipedown)="onSwipeDown($event)"
-        (tap)="onTap($event)"
-      >
-        Test text
-      </div>
-
-      <div
         *ngFor="let timePeriod of timePeriods"
         class="example-box"
         cdkDrag
@@ -55,6 +47,14 @@
           {{ timePeriod }}
         </div>
       </div>
+    </div>
+
+    <div
+      (swipeup)="onSwipeUp($event)"
+      (swipedown)="onSwipeDown($event)"
+      (tap)="onTap($event)"
+    >
+      Test text
     </div>
   </div>
 
