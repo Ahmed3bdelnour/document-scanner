@@ -10,8 +10,14 @@
   />
 </div>
 
-<app-document-scanner
+<!-- <app-document-scanner
   *ngIf="showDocumentScanner"
   (onClose)="handleClose()"
   (onCapture)="handleCapturedDocument($event)"
-></app-document-scanner>
+></app-document-scanner> -->
+
+<app-document-scanner-new
+  *ngIf="showDocumentScanner"
+  (onClose)="handleClose()"
+  (onCapture)="handleCapturedDocument($event)"
+></app-document-scanner-new>
