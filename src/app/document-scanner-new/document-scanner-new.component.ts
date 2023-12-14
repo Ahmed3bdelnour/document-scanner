@@ -250,6 +250,18 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
     this.enableSorting = true;
   }
 
+  onSwipeUp(e: any) {
+    alert(e);
+  }
+
+  onSwipeDown(e: any) {
+    alert(e);
+  }
+
+  onTap(e: any) {
+    alert(e);
+  }
+
   ngOnDestroy(): void {
     this.stopCameraAndFireCloseEvent();
     this.subscriptions.unsubscribe();

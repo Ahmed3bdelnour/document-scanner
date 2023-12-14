@@ -40,7 +40,13 @@
         (click)="enableSorting = true"
         (cdkDragEnded)="enableSorting = false"
       >
-        <div>{{ timePeriod }}</div>
+        <div
+          (swipeup)="onSwipeUp($event)"
+          (swipedown)="onSwipeDown($event)"
+          (tap)="onTap($event)"
+        >
+          {{ timePeriod }}
+        </div>
       </div>
     </div>
   </div>
