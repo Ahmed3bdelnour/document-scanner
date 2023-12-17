@@ -165,11 +165,9 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
 
             this.captureDocument(false);
 
-            this.removeAutoCroppingListener();
-            this.useAutoCapturing = false;
-            this.scanResult = ScanResult.NoDocument;
+            this.toggleCapturingMode();
             setTimeout(() => {
-              this.useAutoCapturing = true;
+              this.toggleCapturingMode();
             }, 1000);
           }, 1000);
         } else if (!shouldAutoCrop && this.autoCropTimeoutId !== undefined) {
@@ -259,8 +257,6 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
     const pdfBlob = doc.output('blob');
     return new File([pdfBlob], 'document.pdf', { type: 'application/pdf' });
   }
-
-  handleCancel() {}
 
   ngOnDestroy(): void {
     this.stopCameraAndFireCloseEvent();
