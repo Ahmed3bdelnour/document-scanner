@@ -6,6 +6,8 @@ import {
   OnInit,
   Output,
 } from '@angular/core';
+// @ts-ignore
+import { jsPDF } from 'jspdf';
 import { Subscription, fromEvent, take } from 'rxjs';
 import { ScanResult, WebScanner } from './model';
 import { loadOpenCV } from './opencv-loader';
@@ -31,9 +33,7 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
   scanResult = ScanResult.NoDocument;
   autoCropTimeoutId: any;
 
-  closed = false;
-
-  enableSorting = false;
+  capturedImages: string[] = [];
 
   subscriptions = new Subscription();
 
@@ -154,20 +154,20 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
           this.video.height
         );
 
-        // const shouldAutoCrop = this.scanResult === ScanResult.ReadyDocument;
+        const shouldAutoCrop = this.scanResult === ScanResult.ReadyDocument;
 
-        // if (shouldAutoCrop && this.autoCropTimeoutId === undefined) {
-        //   this.autoCropTimeoutId = setTimeout(() => {
-        //     if (!shouldAutoCrop) {
-        //       this.removeAutoCroppingListener();
-        //       return;
-        //     }
+        if (shouldAutoCrop && this.autoCropTimeoutId === undefined) {
+          this.autoCropTimeoutId = setTimeout(() => {
+            if (!shouldAutoCrop) {
+              this.removeAutoCroppingListener();
+              return;
+            }
 
-        //     this.captureDocument(false);
-        //   }, 1000);
-        // } else if (!shouldAutoCrop && this.autoCropTimeoutId !== undefined) {
-        //   this.removeAutoCroppingListener();
-        // }
+            this.captureDocument(false);
+          }, 1000);
+        } else if (!shouldAutoCrop && this.autoCropTimeoutId !== undefined) {
+          this.removeAutoCroppingListener();
+        }
       }
     } catch (error) {
       console.error(error);
@@ -212,8 +212,7 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
       fullImage
     );
 
-    this.onCapture.emit(resultCanvas.toDataURL('image/png'));
-    this.stopCameraAndFireCloseEvent();
+    this.capturedImages.push(resultCanvas.toDataURL('image/png'));
   }
 
   removeAutoCroppingListener() {
@@ -223,37 +222,42 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
     this.autoCropTimeoutId = undefined;
   }
 
+  drop(event: CdkDragDrop<string[]>) {
+    moveItemInArray(
+      this.capturedImages,
+      event.previousIndex,
+      event.currentIndex
+    );
+  }
+
+  deleteDocument(index: number) {
+    this.capturedImages = this.capturedImages.filter((_, i) => i !== index);
+  }
+
+  generateDocumentAndClose() {
+    this.onCapture.emit(this.createPDF(this.capturedImages));
+    this.stopCameraAndFireCloseEvent();
+  }
+
+  createPDF(imagesURLS: string[]) {
+    const doc = new jsPDF('p', 'pt', 'letter');
+    const width = doc.internal.pageSize.width;
+    const height = doc.internal.pageSize.height;
+
+    imagesURLS.forEach((image, index) => {
+      doc.addImage(image, 'JPEG', 0, 0, width, height);
+      if (index !== imagesURLS.length - 1) doc.addPage();
+    });
+
+    const pdfBlob = doc.output('blob');
+    return new File([pdfBlob], 'document.pdf', { type: 'application/pdf' });
+  }
+
+  handleCancel() {}
+
   ngOnDestroy(): void {
     this.stopCameraAndFireCloseEvent();
     this.subscriptions.unsubscribe();
     if (this.capture) this.capture = null;
-  }
-
-  //////////////
-
-  timePeriods = [
-    'Bronze age',
-    'Iron age',
-    'Middle ages',
-    'Early modern period',
-    'Long nineteenth century',
-    'Bronze age',
-    'Iron age',
-    'Middle ages',
-    'Early modern period',
-    'Long nineteenth century',
-    'Bronze age',
-    'Iron age',
-    'Middle ages',
-    'Early modern period',
-    'Long nineteenth century',
-  ];
-
-  drop(event: CdkDragDrop<string[]>) {
-    moveItemInArray(this.timePeriods, event.previousIndex, event.currentIndex);
-  }
-
-  deleteCapture(index: number) {
-    this.timePeriods = this.timePeriods.filter((_, i) => i !== index);
   }
 }

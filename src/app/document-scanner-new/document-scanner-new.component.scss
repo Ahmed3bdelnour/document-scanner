@@ -106,6 +106,23 @@
         }
       }
     }
+
+    .done-btn,
+    .cancel-btn {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      width: 48px;
+      height: 48px;
+      border: none;
+      outline: none;
+      border-radius: 50%;
+    }
+
+    .cancel-btn {
+      right: unset;
+      left: 10px;
+    }
   }
 
   .captured-documents-container {
@@ -179,12 +196,7 @@
   }
 }
 
-.example-list {
-  // width: 1000px;
-  // max-width: 100%;
-  // min-height: 60px;
-  // display: flex;
-  // flex-direction: row;
+.documents-list {
   border: solid 1px #ccc;
   background: white;
   border-radius: 4px;
@@ -193,15 +205,7 @@
   height: 100%;
 }
 
-.example-box {
-  // display: flex;
-  // flex-direction: row;
-  // align-items: center;
-  // justify-content: space-between;
-  // padding: 20px 10px;
-  // flex-grow: 1;
-  // flex-basis: 0;
-
+.image-box {
   border-right: solid 1px #ccc;
   color: rgba(0, 0, 0, 0.87);
   box-sizing: border-box;
@@ -230,15 +234,15 @@
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
-.example-box:last-child {
+.image-box:last-child {
   border: none;
 }
 
-.example-list.cdk-drop-list-dragging .example-box:not(.cdk-drag-placeholder) {
+.documents-list.cdk-drop-list-dragging .image-box:not(.cdk-drag-placeholder) {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
-.example-handle {
+.drag-handle {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -251,7 +255,7 @@
   padding: 5px;
 }
 
-.example-delete {
+.delete-document {
   position: absolute;
   top: 10px;
   left: 10px;
@@ -268,7 +272,7 @@
   justify-content: center;
 }
 
-.capture-image {
+.captured-document {
   position: absolute;
   top: 0px;
   left: 0px;

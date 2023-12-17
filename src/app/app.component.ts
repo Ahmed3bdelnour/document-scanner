@@ -9,8 +9,8 @@ export class AppComponent {
   scannedDocumentURL = '';
   showDocumentScanner = false;
 
-  handleCapturedDocument(scannedDocumentURL: string) {
-    this.scannedDocumentURL = scannedDocumentURL;
+  handleCapturedDocument(scannedDocument: File) {
+    console.log(scannedDocument);
   }
 
   handleCancelScanning() {
