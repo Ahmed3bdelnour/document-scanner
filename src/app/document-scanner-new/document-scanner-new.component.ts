@@ -164,6 +164,11 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
             }
 
             this.captureDocument(false);
+
+            this.useAutoCapturing = false;
+            setTimeout(() => {
+              this.useAutoCapturing = true;
+            }, 1000);
           }, 1000);
         } else if (!shouldAutoCrop && this.autoCropTimeoutId !== undefined) {
           this.removeAutoCroppingListener();
