@@ -39,9 +39,10 @@
 
   <div class="captured-documents-container" *ngIf="!isVideoClosed">
     <div
+      class="documents-list"
       cdkDropList
       cdkDropListOrientation="horizontal"
-      class="documents-list"
+      [cdkDropListAutoScrollStep]="10"
       (cdkDropListDropped)="drop($event)"
     >
       <div
