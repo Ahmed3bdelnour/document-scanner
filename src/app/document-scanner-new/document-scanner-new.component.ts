@@ -83,8 +83,10 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
     this.scanner = new WebScanner(cv);
 
     this.video = document.getElementById('video')! as HTMLVideoElement;
-    this.video.width = window.innerWidth;
-    this.video.height = 0.67 * window.innerHeight;
+    // this.video.width = window.innerWidth;
+    // this.video.height = 0.67 * window.innerHeight;
+    this.video.width = 720;
+    this.video.height = 0.67 * 1280;
 
     this.subscriptions.add(
       fromEvent(document, 'visibilitychange').subscribe(() => {
