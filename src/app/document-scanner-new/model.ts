@@ -39,12 +39,14 @@ export class WebScanner {
         points.bottomRight;
 
       const smallContour =
-        hasFourPoints && this.cv.boundingRect(maxContour).width < 0.7 * width;
+        hasFourPoints &&
+        this.cv.boundingRect(maxContour).width < 0.8 * screen.availWidth;
 
       if (smallContour) scanResult = ScanResult.NotReadyDocument;
 
       const readyContour =
-        hasFourPoints && this.cv.boundingRect(maxContour).width >= 0.7 * width;
+        hasFourPoints &&
+        this.cv.boundingRect(maxContour).width >= 0.8 * screen.availWidth;
       if (readyContour) scanResult = ScanResult.ReadyDocument;
     }
 
