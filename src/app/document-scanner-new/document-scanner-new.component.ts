@@ -83,10 +83,8 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
     this.scanner = new WebScanner(cv);
 
     this.video = document.getElementById('video')! as HTMLVideoElement;
-    // this.video.width = window.innerWidth;
-    // this.video.height = 0.67 * window.innerHeight;
-    // this.video.width = 1280;
-    // this.video.height = 720;
+    this.video.width = window.innerWidth;
+    this.video.height = 0.67 * window.innerHeight;
 
     this.subscriptions.add(
       fromEvent(document, 'visibilitychange').subscribe(() => {
@@ -144,19 +142,17 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
   }
 
   openCamera = () => {
-    // const activeCamera = this.availableCameras[this.activeCameraIndex];
-    // if (!activeCamera) return;
+    const activeCamera = this.availableCameras[this.activeCameraIndex];
+    if (!activeCamera) return;
 
     this.loadingCameraError = false;
 
     return navigator.mediaDevices
       .getUserMedia({
         video: {
-          facingMode: {
-            exact: 'environment',
-          },
-          width: { ideal: 2160 },
-          height: { ideal: 4096 },
+          deviceId: { exact: activeCamera.deviceId },
+          width: { ideal: this.video.height },
+          height: { ideal: this.video.width },
           frameRate: { exact: this.frameRate },
         },
         audio: false,
@@ -170,9 +166,6 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
           .subscribe(() => {
             this.loadingCameraError = false;
             this.video.play();
-            console.log(this.video);
-            this.video.width = this.video.videoWidth;
-            this.video.height = this.video.videoHeight;
             this.capture = new cv.VideoCapture(this.video);
           });
       })
