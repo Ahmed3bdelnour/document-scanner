@@ -22,6 +22,7 @@
     position: relative;
     width: 100%;
     height: 67%;
+    background: black;
 
     #video,
     #result {
@@ -195,6 +196,38 @@
         top: -20px;
       }
     }
+  }
+
+  .switch-camera-and-capture-btn-container {
+    position: absolute;
+    bottom: 0px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .capture-image-btn,
+  .switch-camera-btn {
+    width: 48px;
+    height: 48px;
+    border: none;
+    outline: none;
+    pointer-events: initial;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    position: relative;
+    top: -10px;
+  }
+
+  .switch-camera-btn {
+    top: unset;
+    bottom: -20px;
+    transform: translateY(-100%);
+    margin-bottom: -10px;
+    font-weight: 400;
+    background-color: white;
   }
 }
 

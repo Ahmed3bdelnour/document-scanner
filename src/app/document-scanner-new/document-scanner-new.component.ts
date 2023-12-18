@@ -29,9 +29,13 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
   capture: any = null;
   scanner: any;
 
-  useAutoCapturing = true;
+  useAutoCapturing = false;
   scanResult = ScanResult.NoDocument;
   autoCropTimeoutId: any;
+
+  availableCameras: any[] = [];
+  activeCameraIndex = 0;
+  loadingCameraError = false;
 
   capturedImages: string[] = [];
 
@@ -101,14 +105,51 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
       })
     );
 
+    await this.getAvailableCameras();
     this.openCamera();
   }
 
-  openCamera = () => {
+  getAvailableCameras() {
     return navigator.mediaDevices
       .getUserMedia({
         video: {
           facingMode: 'environment',
+        },
+        audio: false,
+      })
+      .then(() => navigator.mediaDevices.enumerateDevices())
+      .then((devices) =>
+        devices.filter((device) => device.kind.toLowerCase() === 'videoinput')
+      )
+      .then((cameras) => {
+        const rearCameras = cameras.filter((camera) =>
+          camera.label.toLowerCase().includes('back')
+        );
+
+        this.availableCameras = rearCameras.length ? rearCameras : cameras;
+
+        if (!this.availableCameras.length)
+          throw new Error('No available cameras');
+
+        this.activeCameraIndex = 0;
+
+        return;
+      })
+      .catch((error: any) => {
+        alert('Can not get cameras information: ' + error);
+      });
+  }
+
+  openCamera = () => {
+    const activeCamera = this.availableCameras[this.activeCameraIndex];
+    if (!activeCamera) return;
+
+    this.loadingCameraError = false;
+
+    return navigator.mediaDevices
+      .getUserMedia({
+        video: {
+          deviceId: { exact: activeCamera.deviceId },
           width: { ideal: this.video.height },
           height: { ideal: this.video.width },
         },
@@ -121,14 +162,24 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
         fromEvent(this.video, 'canplay')
           .pipe(take(1))
           .subscribe(() => {
+            this.loadingCameraError = false;
             this.video.play();
             this.capture = new cv.VideoCapture(this.video);
           });
       })
       .catch((error) => {
+        this.loadingCameraError = true;
         alert('Failed to open camera: ' + error);
       });
   };
+
+  switchCamera() {
+    this.activeCameraIndex++;
+    if (this.activeCameraIndex > this.availableCameras.length - 1)
+      this.activeCameraIndex = 0;
+
+    this.restartCamera();
+  }
 
   restartCamera() {
     this.stopCamera();
@@ -164,11 +215,7 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
             }
 
             this.captureDocument(false);
-
             this.toggleCapturingMode();
-            setTimeout(() => {
-              this.toggleCapturingMode();
-            }, 1000);
           }, 1000);
         } else if (!shouldAutoCrop && this.autoCropTimeoutId !== undefined) {
           this.removeAutoCroppingListener();

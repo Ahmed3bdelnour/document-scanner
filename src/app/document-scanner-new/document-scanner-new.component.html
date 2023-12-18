@@ -1,11 +1,23 @@
 <div class="camera-container" [style.height.px]="windowInnerHeight">
-  <div class="loading-camera-message" *ngIf="isVideoClosed">
+  <div
+    class="loading-camera-message"
+    *ngIf="isVideoClosed && !loadingCameraError"
+  >
     Loading camera, please wait...
   </div>
 
-  <div class="video-and-canvas-container" [hidden]="isVideoClosed">
-    <video id="video" playsinline autoplay loop></video>
-    <canvas id="result"></canvas>
+  <div
+    class="video-and-canvas-container"
+    [hidden]="isVideoClosed && !loadingCameraError"
+  >
+    <video
+      id="video"
+      playsinline
+      autoplay
+      loop
+      [hidden]="loadingCameraError"
+    ></video>
+    <canvas id="result" [hidden]="loadingCameraError"></canvas>
 
     <div class="capturing-message-container">
       <div class="message" *ngIf="useAutoCapturing && isVideoStreaming">
@@ -27,6 +39,24 @@
     <button class="cancel-btn" (click)="stopCameraAndFireCloseEvent()">
       <img src="assets/images/times.svg" />
     </button>
+
+    <div class="switch-camera-and-capture-btn-container">
+      <button
+        *ngIf="availableCameras.length > 1"
+        class="switch-camera-btn"
+        (click)="switchCamera()"
+      >
+        switch
+      </button>
+
+      <button
+        class="capture-image-btn"
+        (click)="toggleCapturingMode()"
+        [disabled]="loadingCameraError"
+      >
+        {{ useAutoCapturing ? "Stop" : "Start" }}
+      </button>
+    </div>
 
     <button
       class="done-btn"

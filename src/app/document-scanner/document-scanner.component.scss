@@ -173,17 +173,6 @@
         position: relative;
       }
 
-      .capture-cancel-btn,
-      .file-upload-btn {
-        width: 40px;
-        height: 40px;
-        background-color: #00000080;
-        border-radius: 8px;
-        outline: none;
-        border: none;
-        cursor: pointer;
-      }
-
       .capture-image-btn,
       .switch-camera-btn {
         width: 48px;
@@ -207,6 +196,17 @@
         margin-bottom: -10px;
         font-weight: 400;
         background-color: white;
+      }
+
+      .capture-cancel-btn,
+      .file-upload-btn {
+        width: 40px;
+        height: 40px;
+        background-color: #00000080;
+        border-radius: 8px;
+        outline: none;
+        border: none;
+        cursor: pointer;
       }
     }
   }
