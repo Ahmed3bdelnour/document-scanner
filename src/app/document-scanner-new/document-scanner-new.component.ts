@@ -162,11 +162,7 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
         audio: false,
       })
       .then((stream) => {
-        debugger;
-
         this.video.srcObject = stream;
-        this.video.width = this.video.videoWidth;
-        this.video.height = this.video.videoHeight;
         this.stream = stream;
 
         fromEvent(this.video, 'canplay')
@@ -174,6 +170,9 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
           .subscribe(() => {
             this.loadingCameraError = false;
             this.video.play();
+            console.log(this.video);
+            this.video.width = this.video.videoWidth;
+            this.video.height = this.video.videoHeight;
             this.capture = new cv.VideoCapture(this.video);
           });
       })
