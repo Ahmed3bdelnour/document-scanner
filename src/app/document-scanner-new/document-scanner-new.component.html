@@ -70,6 +70,7 @@
   <div class="captured-documents-container" *ngIf="!isVideoClosed">
     <div
       class="documents-list"
+      [perfectScrollbar]="{ suppressScrollY: false }"
       cdkDropList
       cdkDropListOrientation="horizontal"
       [cdkDropListAutoScrollStep]="10"

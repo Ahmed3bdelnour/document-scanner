@@ -5,9 +5,11 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  ViewChild,
 } from '@angular/core';
 // @ts-ignore
 import { jsPDF } from 'jspdf';
+import { PerfectScrollbarDirective } from 'ngx-perfect-scrollbar';
 import { Subscription, fromEvent, take } from 'rxjs';
 import { ScanResult, WebScanner } from './model';
 import { loadOpenCV } from './opencv-loader';
@@ -20,6 +22,9 @@ declare let cv: any;
   styleUrls: ['./document-scanner-new.component.scss'],
 })
 export class DocumentScannerNewComponent implements OnInit, OnDestroy {
+  @ViewChild(PerfectScrollbarDirective, { static: false })
+  scrollbar?: PerfectScrollbarDirective;
+
   @Output() onCapture = new EventEmitter();
   @Output() onClose = new EventEmitter();
 
@@ -83,8 +88,6 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
     this.scanner = new WebScanner(cv);
 
     this.video = document.getElementById('video')! as HTMLVideoElement;
-    // this.video.width = window.innerWidth;
-    // this.video.height = 0.67 * window.innerHeight;
     this.video.width = 1080;
     this.video.height = 0.67 * 1920;
 
@@ -274,6 +277,7 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
     );
 
     this.capturedImages.push(resultCanvas.toDataURL('image/png'));
+    this.scrollbar?.scrollToRight();
   }
 
   removeAutoCroppingListener() {
