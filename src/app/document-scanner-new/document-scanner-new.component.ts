@@ -277,7 +277,9 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
     );
 
     this.capturedImages.push(resultCanvas.toDataURL('image/png'));
-    this.scrollbar?.scrollToRight();
+    setTimeout(() => {
+      this.scrollbar?.scrollToRight();
+    }, 0);
   }
 
   removeAutoCroppingListener() {
