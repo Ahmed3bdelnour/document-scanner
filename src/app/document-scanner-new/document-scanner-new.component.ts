@@ -72,7 +72,7 @@ export class DocumentScannerNewComponent implements OnInit, OnDestroy {
 
     loadOpenCV(
       {
-        asm: baseURL + '/assets/js/opencv/opencv.js',
+        asm: baseURL + '/assets/js/opencv-2/opencv.js',
       },
       () => {
         this.InitScanner();
