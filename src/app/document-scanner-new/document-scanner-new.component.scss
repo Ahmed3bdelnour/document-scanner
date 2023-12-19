@@ -247,8 +247,9 @@
   position: relative;
   display: inline-block;
   width: calc((100% - 15px) / 2.35);
-  height: calc(100% - 10px);
+  height: calc(100% - 20px);
   margin-inline-end: 5px;
+  margin-top: 10px;
 
   &:first-child {
     margin-inline-start: 5px;
