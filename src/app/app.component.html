@@ -1,1 +1,12 @@
-<app-document-scanner></app-document-scanner>
+<button
+  class="btn mobile-scan-btn"
+  (click)="showDocumentScanner = !showDocumentScanner"
+>
+  Scan document
+</button>
+
+<app-document-scanner
+  *ngIf="showDocumentScanner"
+  (onClose)="showDocumentScanner = false"
+  (onCapture)="handleCapturedDocument($event)"
+></app-document-scanner>

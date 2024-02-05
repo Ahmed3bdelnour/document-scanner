@@ -1,17 +1,94 @@
-<div class="fax-mobile-scan">
-  <button class="btn" (click)="scanDocument()">SCAN</button>
+<div class="document-scanner-container" [style.height.px]="windowInnerHeight">
+  <div
+    class="loading-camera-message"
+    *ngIf="isVideoClosed && !loadingCameraError"
+  >
+    Loading camera, please wait...
+  </div>
 
-  <div class="camera-stream-container" *ngIf="cameraStreaming">
+  <div
+    class="video-and-canvas-container"
+    [hidden]="isVideoClosed && !loadingCameraError"
+  >
     <video
-      id="videoInput"
-      [width]="screenWidth"
-      [height]="screenHeight"
+      id="video"
+      playsinline
+      autoplay
+      loop
+      [hidden]="loadingCameraError"
     ></video>
-    <canvas
-      id="canvasOutput"
-      [width]="screenWidth"
-      [height]="screenHeight"
-    ></canvas>
-    <button class="capture-image-btn" (click)="captureImage()">capture</button>
+    <canvas id="result" [hidden]="loadingCameraError"></canvas>
+
+    <div class="capturing-message-container">
+      <div class="message" *ngIf="useAutoCapturing && isVideoStreaming">
+        <ng-container *ngIf="scanResult === 0"
+          >Looking for document
+          <div class="loading-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="scanResult === 1"
+          ><= Get camera closer =></ng-container
+        >
+
+        <ng-container *ngIf="scanResult === 2">Capturing Page...</ng-container>
+      </div>
+    </div>
+
+    <button
+      *ngIf="availableCameras.length > 1"
+      class="switch-camera-btn"
+      (click)="switchCamera()"
+    >
+      <img src="assets/img/rotate.svg" />
+    </button>
+
+    <button class="cancel-btn" (click)="stopCameraAndFireCloseEvent()">
+      <img src="assets/img/times.svg" />
+    </button>
+
+    <button
+      class="btn capture-image-btn"
+      (click)="toggleCapturingMode()"
+      [disabled]="loadingCameraError"
+    >
+      {{ useAutoCapturing ? "Stop Capturing" : "Capture Page" }}
+    </button>
+
+    <button
+      class="done-btn"
+      (click)="generateDocumentAndClose()"
+      [disabled]="!capturedImages.length"
+    >
+      <img src="assets/img/check-mark.svg" />
+    </button>
+  </div>
+
+  <div class="captured-images-container" *ngIf="!isVideoClosed">
+    <div
+      class="document-scanner-images-list"
+      [perfectScrollbar]="{ suppressScrollY: false }"
+      cdkDropList
+      cdkDropListOrientation="horizontal"
+      [cdkDropListAutoScrollStep]="10"
+      (cdkDropListDropped)="drop($event)"
+    >
+      <div
+        *ngFor="let imageURL of capturedImages; let i = index"
+        class="document-scanner-image-box"
+        cdkDrag
+      >
+        <div class="document-scanner-drag-handle" cdkDragHandle>
+          <img src="assets/img/grip.svg" />
+        </div>
+
+        <div class="document-scanner-delete-image" (click)="deleteImage(i)">
+          <img src="assets/img/times-dark.svg" />
+        </div>
+
+        <img class="document-scanner-captured-image" [src]="imageURL" />
+      </div>
+    </div>
   </div>
 </div>
