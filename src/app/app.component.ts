@@ -9,6 +9,6 @@ export class AppComponent {
   showDocumentScanner = false;
 
   handleCapturedDocument(scannedDocument: File) {
-    console.log(scannedDocument);
+    console.log('Scanned document: ', scannedDocument);
   }
 }
