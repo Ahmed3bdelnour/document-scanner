@@ -72,7 +72,9 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
   ngAfterViewInit(): void {
     loadOpenCV(
       {
-        asm: window.location.origin + '/assets/js/opencv/opencv.js',
+        asm:
+          window.location.origin +
+          '/document-scanner/assets/js/opencv/opencv.js',
       },
       () => {
         this.InitScanner();
