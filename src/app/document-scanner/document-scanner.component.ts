@@ -309,12 +309,12 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
   }
 
   createPDF(imagesURLS: string[]) {
-    const doc = new jsPDF('p', 'pt', 'letter');
+    const doc = new jsPDF('p', 'pt', 'letter', true);
     const width = doc.internal.pageSize.width;
     const height = doc.internal.pageSize.height;
 
     imagesURLS.forEach((image, index) => {
-      doc.addImage(image, 'JPEG', 0, 0, width, height);
+      doc.addImage(image, 'PNG', 0, 0, width, height, '', 'FAST');
       if (index !== imagesURLS.length - 1) doc.addPage();
     });
 
