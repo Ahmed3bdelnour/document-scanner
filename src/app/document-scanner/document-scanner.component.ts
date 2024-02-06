@@ -5,11 +5,9 @@ import {
   OnDestroy,
   OnInit,
   Output,
-  ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
 import { jsPDF } from 'jspdf';
-import { PerfectScrollbarDirective } from 'ngx-perfect-scrollbar';
 import { ToastrService } from 'ngx-toastr';
 import { Subscription, fromEvent } from 'rxjs';
 import { take } from 'rxjs/operators';
@@ -25,9 +23,6 @@ declare let cv: any;
   encapsulation: ViewEncapsulation.None,
 })
 export class DocumentScannerComponent implements OnInit, OnDestroy {
-  @ViewChild(PerfectScrollbarDirective, { static: false })
-  scrollbar?: PerfectScrollbarDirective;
-
   @Output() onCapture = new EventEmitter();
   @Output() onClose = new EventEmitter();
 
@@ -277,10 +272,6 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       fullImage
     );
     this.capturedImages.push(resultCanvas.toDataURL('image/png'));
-
-    setTimeout(() => {
-      this.scrollbar?.scrollToRight();
-    }, 0);
   }
 
   removeAutoCroppingListener() {
@@ -300,7 +291,6 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
 
   deleteImage(index: number) {
     this.capturedImages = this.capturedImages.filter((_, i) => i !== index);
-    this.scrollbar?.update();
   }
 
   generateDocumentAndClose() {
