@@ -189,6 +189,7 @@
 }
 
 .document-scanner-image-box {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -197,6 +198,7 @@
   height: calc(100% - 20px);
   margin-inline-end: 5px;
   margin-top: 10px;
+  border: 1px solid #1d1d1d;
 
   &:first-child {
     margin-inline-start: 5px;
