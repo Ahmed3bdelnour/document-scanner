@@ -180,22 +180,23 @@
 }
 
 .document-scanner-images-list {
+  display: flex;
+  width: 100vw;
+  height: 100%;
   background: white;
   white-space: nowrap;
-  height: 100%;
-  position: relative;
-  width: 100vw;
   overflow: auto;
 }
 
 .document-scanner-image-box {
-  position: relative;
-  display: inline-block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: calc((100% - 15px) / 2.35);
+  min-width: calc((100% - 15px) / 2.35);
   height: calc(100% - 20px);
   margin-inline-end: 5px;
   margin-top: 10px;
-  border: 1px solid #1d1d1d;
 
   &:first-child {
     margin-inline-start: 5px;
@@ -255,9 +256,7 @@
 }
 
 .document-scanner-captured-image {
-  position: absolute;
-  top: 0px;
-  left: 0px;
+  display: block;
   width: 100%;
-  height: 100%;
+  max-height: 100%;
 }

@@ -170,7 +170,7 @@ export class WebScanner {
 
     const M = this.cv.getPerspectiveTransform(srcTri, dstTri);
 
-    const dst = new this.cv.Mat(height, width, this.cv.CV_8UC4);
+    const dst = new this.cv.Mat(resultHeight, resultWidth, this.cv.CV_8UC4);
     this.cv.warpPerspective(
       src,
       dst,
