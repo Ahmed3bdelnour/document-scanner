@@ -72,7 +72,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
           '/document-scanner/assets/js/opencv/opencv.js',
       },
       () => {
-        debugger;
+        console.log('init scanner');
         this.InitScanner();
       },
       () => {
@@ -111,7 +111,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       })
     );
 
-    debugger;
+    console.log('get available cameras');
 
     await this.getAvailableCameras();
     this.openCamera();
@@ -130,12 +130,13 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
         devices.filter((device) => device.kind.toLowerCase() === 'videoinput')
       )
       .then((cameras) => {
-        debugger;
+        console.log('rear cameras line');
         const rearCameras = cameras.filter((camera) =>
           camera.label.toLowerCase().includes('back')
         );
+        console.log(rearCameras);
         this.availableCameras = rearCameras.length ? rearCameras : cameras;
-
+        console.log(this.availableCameras);
         if (!this.availableCameras.length)
           throw new Error('No available cameras');
 
