@@ -126,9 +126,13 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
         audio: false,
       })
       .then(() => navigator.mediaDevices.enumerateDevices())
-      .then((devices) =>
-        devices.filter((device) => device.kind.toLowerCase() === 'videoinput')
-      )
+      .then((devices) => {
+        console.log(navigator.mediaDevices);
+        console.log(devices);
+        return devices.filter(
+          (device) => device.kind.toLowerCase() === 'videoinput'
+        );
+      })
       .then((cameras) => {
         console.log('rear cameras line');
         const rearCameras = cameras.filter((camera) =>
