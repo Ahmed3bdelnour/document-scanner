@@ -72,6 +72,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
           '/document-scanner/assets/js/opencv/opencv.js',
       },
       () => {
+        debugger;
         this.InitScanner();
       },
       () => {
@@ -110,6 +111,8 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
       })
     );
 
+    debugger;
+
     await this.getAvailableCameras();
     this.openCamera();
   }
@@ -127,6 +130,7 @@ export class DocumentScannerComponent implements OnInit, OnDestroy {
         devices.filter((device) => device.kind.toLowerCase() === 'videoinput')
       )
       .then((cameras) => {
+        debugger;
         const rearCameras = cameras.filter((camera) =>
           camera.label.toLowerCase().includes('back')
         );
